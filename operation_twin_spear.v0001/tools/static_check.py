@@ -322,6 +322,12 @@ def main() -> int:
         fail("unconditional literal Player2 brain lookup detected")
     ok("Player2 remains guarded")
 
+    if "ScenarioInfo.UnitNames" not in script or "GetNamedArmyUnit" not in script:
+        fail("objective targets must resolve through ScenarioInfo.UnitNames")
+    if "commandTree." in script or "radarTree." in script:
+        fail("objective targets must not depend on CreateArmyGroup tree return values")
+    ok("named objective targets use ScenarioInfo.UnitNames")
+
     phase2 = extract_start_phase2(script)
     if "MissionVictory(" in phase2 or "EndOperation(" in phase2:
         fail("Stage 2 must not end the operation from StartPhase2")
