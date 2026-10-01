@@ -8,7 +8,7 @@ on:
   pull_request:
 
 jobs:
-  stage1-static-check:
+  stage2-static-check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,5 +25,5 @@ jobs:
           sudo apt-get install -y lua5.4
           command -v luac
 
-      - name: Validate mission contract and Lua syntax
+      - name: Validate Stage 2 mission contract and Lua syntax
         run: python3 operation_twin_spear.v0001/tools/static_check.py
