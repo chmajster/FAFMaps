@@ -894,6 +894,7 @@ function StartCounterattack()
 
     if MissionState.CounterattackInitialCount == 0 then
         Log('COUNTER', 'No counterattack units spawned; resolving safely')
+        MissionState.CounterattackResolved = true
         CompletePhase1()
         return
     end
@@ -1213,7 +1214,7 @@ function InitializeEnemyArmies()
             'Attack',
             'AttackFormation'
         )
-        ScenarioFramework.PlatoonPatrolChain(garrisonPlatoon, 'CHAIN_FORWARD_REINFORCEMENT')
+        ScenarioFramework.PlatoonPatrolChain(garrisonPlatoon, 'CHAIN_FORWARD_GARRISON')
     end
 
     Log('INIT', 'Forward Cybran Outpost initialized from save.lua groups')
