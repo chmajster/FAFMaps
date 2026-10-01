@@ -1006,7 +1006,6 @@ Scenario = {
                 'WEST_ATTACK_02',
                 'WEST_ATTACK_03',
                 'CROSSING_WEST',
-                'P1_ATTACK_TARGET',
             },
         },
         CHAIN_WEST_BASE_PATROL = {
@@ -1056,7 +1055,6 @@ Scenario = {
                 'CENTRAL_RESPONSE_SPAWN',
                 'CENTRAL_RESPONSE_TARGET',
                 'CROSSING_CENTER_OPTIONAL',
-                'P1_ATTACK_TARGET',
             },
         },
         CHAIN_CENTRAL_FLANK = {
@@ -1100,7 +1098,6 @@ Scenario = {
                 'PHASE3_ATTACK_EAST_03',
                 'EAST_BASE_CENTER',
                 'CROSSING_EAST',
-                'P2_ATTACK_TARGET',
             },
         },
         CHAIN_PHASE3_FLANK_WEST = {
@@ -1109,7 +1106,6 @@ Scenario = {
                 'PHASE3_FLANK_WEST_01',
                 'PHASE3_FLANK_WEST_02',
                 'WEST_ATTACK_03',
-                'P1_ATTACK_TARGET',
             },
         },
         CHAIN_PHASE3_FLANK_EAST = {
@@ -1118,7 +1114,6 @@ Scenario = {
                 'PHASE3_FLANK_EAST_01',
                 'PHASE3_FLANK_EAST_02',
                 'EAST_BASE_CENTER',
-                'P2_ATTACK_TARGET',
             },
         },
         CHAIN_REINFORCEMENT_AIR_ENTRY = {
