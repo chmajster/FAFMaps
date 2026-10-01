@@ -637,7 +637,7 @@ def main() -> int:
     # The three primaries are deliberately independent; completion checks the
     # state flags rather than a prescribed order.
     completion = re.search(
-        r"function\s+CheckPhase3Completion\s*\(\s*\)(.*?)\nend\n",
+        r"function\s+CheckPhase3Completion\s*\(\s*\)(.*?)function\s+CompleteArtilleryObjective",
         script,
         re.S,
     )
@@ -672,12 +672,12 @@ def main() -> int:
 
     # Exactly-once response guards.
     strategic = re.search(
-        r"function\s+TriggerStrategicResponse\s*\(\s*\)(.*?)\nend\n",
+        r"function\s+TriggerStrategicResponse\s*\(\s*\)(.*?)function\s+TriggerEmergencyResponse",
         script,
         re.S,
     )
     emergency = re.search(
-        r"function\s+TriggerEmergencyResponse\s*\(\s*\)(.*?)\nend\n",
+        r"function\s+TriggerEmergencyResponse\s*\(\s*\)(.*?)local\s+function\s+UpdatePhase3ResponseState",
         script,
         re.S,
     )
@@ -688,17 +688,33 @@ def main() -> int:
     ok("TEST 8/9 — Strategic and Emergency Response once-only guards present")
 
     # System teardown is coupled to each strategic target.
-    for function_name, thread_token in (
-        ("CompleteArtilleryObjective", "Phase3Artillery"),
-        ("CompleteDefenseObjective", "Phase3DefenseRepair"),
-        ("CompleteGatewayObjective", "Phase3GatewayReinforcement"),
-    ):
-        block = re.search(
-            rf"function\s+{function_name}\s*\(\s*\)(.*?)\nend\n",
-            script,
-            re.S,
-        )
-        if not block or thread_token not in block.group(1):
+    teardown_blocks = (
+        (
+            "CompleteArtilleryObjective",
+            "function CompleteArtilleryObjective",
+            "function CompleteDefenseObjective",
+            "Phase3Artillery",
+        ),
+        (
+            "CompleteDefenseObjective",
+            "function CompleteDefenseObjective",
+            "function CompleteGatewayObjective",
+            "Phase3DefenseRepair",
+        ),
+        (
+            "CompleteGatewayObjective",
+            "function CompleteGatewayObjective",
+            "local function CreatePhase3Objectives",
+            "Phase3GatewayReinforcement",
+        ),
+    )
+    for function_name, start_token, end_token, thread_token in teardown_blocks:
+        start = script.find(start_token)
+        end = script.find(end_token, start + len(start_token))
+        if start < 0 or end < 0:
+            fail(f"could not isolate {function_name}")
+        block = script[start:end]
+        if thread_token not in block:
             fail(f"{function_name} does not stop {thread_token}")
     ok("TEST 1/2/3 — artillery, defense repair and gateway spawner teardown present")
 
