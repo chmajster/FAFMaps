@@ -4,6 +4,6 @@ Custom Forged Alliance Forever maps and scripted co-op operations.
 
 ## Missions
 
-- `operation_twin_spear.v0001` — **Operation Twin Spear**, Stage 1 co-op mission framework for 1–2 UEF players.
+- `operation_twin_spear.v0001` — **Operation Twin Spear**, Stage 2: playable southern co-op chapter for 1–2 UEF players with resources, river crossings, Forward Outpost, scripted waves, objectives, counterattack and Phase 2 transition.
 
-The mission intentionally does not include a fake `.scmap`; create the real binary map with FAF Map Editor as documented inside the mission folder.
+The repository intentionally does not contain a fake `.scmap`. Create/export the real binary map in FAF Map Editor using `operation_twin_spear.v0001/MAP_EDITOR_PLAN.md`.
