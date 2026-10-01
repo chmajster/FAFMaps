@@ -406,6 +406,21 @@ WEST_ATTACK_01
  -> P1_ATTACK_TARGET
 ```
 
+### CHAIN_WEST_ATTACK_TO_P2
+
+Cross-player route used when pressure balancing selects Player2 instead of assuming that West must always attack Player1:
+
+```text
+WEST_ATTACK_01
+ -> WEST_ATTACK_02
+ -> WEST_ATTACK_03
+ -> CENTRAL_RESPONSE_TARGET
+ -> CROSSING_EAST
+ -> P2_ATTACK_TARGET
+```
+
+This route must stay broad and traversable by medium/large land formations. It is deliberately a transfer through the central valley rather than a hard P1=West assignment.
+
 ### CHAIN_EAST_AIR_PATROL_01 / 02
 
 Two independent loops around the East sector. The radar-secondary reward reduces the active route set to route 01 only. Destroying `EAST_AIR_CONTROL_COMMAND` stops new patrol generation completely.
@@ -421,6 +436,17 @@ CENTRAL_RESPONSE_SPAWN
  -> CENTRAL_RESPONSE_TARGET
  -> CROSSING_CENTER_OPTIONAL
  -> P1_ATTACK_TARGET
+```
+
+### CHAIN_CENTRAL_RESPONSE_P2
+
+Alternate main-response route when Player2 is the lower-pressure valid target:
+
+```text
+CENTRAL_RESPONSE_SPAWN
+ -> CENTRAL_RESPONSE_TARGET
+ -> CROSSING_EAST
+ -> P2_ATTACK_TARGET
 ```
 
 ### CHAIN_CENTRAL_FLANK
@@ -571,14 +597,15 @@ Central valley:
 Validate:
 
 1. `CHAIN_WEST_SUPPLY` with 6–8 mixed land units including an engineer.
-2. `CHAIN_WEST_ATTACK` with 20–30 units.
-3. Both East air patrol loops and the central air loop.
-4. `CHAIN_CENTRAL_RESPONSE` with a large mixed formation.
-5. `CHAIN_CENTRAL_FLANK` from spawn to P2 route.
-6. West ↔ Center ↔ East lateral transfer without returning to the southern river crossings.
-7. Factory exit clearance for all West land and East air factories.
-8. No Phase 2 resource point is blocked by cliffs or decorative props.
-9. `AREA_PHASE_3` expansion does not expose the main base plateau at Z≈118 yet.
+2. `CHAIN_WEST_ATTACK` with 20–30 units toward Player1.
+3. `CHAIN_WEST_ATTACK_TO_P2` with 20–30 units through Center toward Player2.
+4. Both East air patrol loops and the central air loop.
+5. `CHAIN_CENTRAL_RESPONSE` and `CHAIN_CENTRAL_RESPONSE_P2` with a large mixed formation.
+6. `CHAIN_CENTRAL_FLANK` from spawn to P2 route.
+7. West ↔ Center ↔ East lateral transfer without returning to the southern river crossings.
+8. Factory exit clearance for all West land and East air factories.
+9. No Phase 2 resource point is blocked by cliffs or decorative props.
+10. `AREA_PHASE_3` expansion does not expose the main base plateau at Z≈118 yet.
 
 ## 11. Prop zones
 
@@ -630,6 +657,8 @@ Before runtime testing:
 6. Verify factory exits are clear.
 7. Verify no decorative prop blocks resource construction.
 8. Verify `CHAIN_FORWARD_REINFORCEMENT` is land-passable from Z≈470 to the outpost.
+9. Send a 20–30 unit land formation through `CHAIN_WEST_ATTACK_TO_P2`; it must not jam in the central valley or at `CROSSING_EAST`.
+10. Repeat the Central Response against both `CHAIN_CENTRAL_RESPONSE` and `CHAIN_CENTRAL_RESPONSE_P2`.
 
 ## 13. Manual Stage 3 / Phase 2 acceptance
 
