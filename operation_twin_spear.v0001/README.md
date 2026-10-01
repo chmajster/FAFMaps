@@ -29,13 +29,19 @@ The final installed map directory must be named:
 operation_twin_spear.v0001
 ```
 
-Copy it into the FAF user maps directory so that the final path is equivalent to:
+On a standard Windows FAF setup, copy it to:
 
 ```text
-<FAF user data>/maps/operation_twin_spear.v0001/
+C:\Users\<USER>\Documents\My Games\Gas Powered Games\Supreme Commander Forged Alliance\maps\operation_twin_spear.v0001\
 ```
 
-On a standard Windows FAF setup the user-data root is the FAForever user data directory selected by the client. Use the client-configured maps directory rather than hard-coding a drive letter.
+If FAF is configured to use its fallback vault location, use:
+
+```text
+C:\ProgramData\FAForever\user\My Games\Gas Powered Games\Supreme Commander Forged Alliance\maps\operation_twin_spear.v0001\
+```
+
+The FAF client-configured maps directory is authoritative if it differs from either default path.
 
 The folder must contain a real:
 
@@ -120,7 +126,7 @@ Create the binary map with FAF Map Editor:
 4. Create or verify every marker from the table below. Marker spelling is part of the script API.
 5. Preserve the army names `Player1`, `Player2`, `CybranMain`, `CybranOutpost`, and `Neutral`.
 6. If the editor regenerates `operation_twin_spear_save.lua`, restore the exact army, marker and chain names used here before committing it.
-7. Ensure the terrain height at all initial Stage 1 spawn markers is valid for land structures/ACUs. The checked-in starter save data uses Y=0 because the final terrain does not exist yet.
+7. Ensure the terrain height at all initial Stage 1 spawn markers is valid for land structures/ACUs. The checked-in starter marker data uses Y=0 because the final terrain does not exist yet; runtime spawning recalculates land-unit Y with `GetTerrainHeight(x, z)`.
 
 Recommended high-level layout:
 
