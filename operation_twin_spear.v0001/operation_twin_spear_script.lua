@@ -683,17 +683,17 @@ end
 
 local function GetPhase2Limits()
     local byDifficulty = {
-        [1] = {West = 12, East = 6, Convoy = 5, Central = 10},
-        [2] = {West = 16, East = 8, Convoy = 6, Central = 14},
-        [3] = {West = 20, East = 10, Convoy = 7, Central = 18},
+        [1] = {West = 12, East = 6, Convoy = 6, Central = 12},
+        [2] = {West = 16, East = 12, Convoy = 10, Central = 18},
+        [3] = {West = 22, East = 18, Convoy = 16, Central = 32},
     }
     local selected = byDifficulty[MissionState.Difficulty] or byDifficulty[2]
     local coop = MissionState.ActivePlayers >= 2
 
     return {
         MaxActiveWestAttackUnits = selected.West + (coop and 4 or 0),
-        MaxActiveEastAirUnits = selected.East + (coop and 2 or 0),
-        MaxActiveConvoyUnits = selected.Convoy + (coop and 1 or 0),
+        MaxActiveEastAirUnits = selected.East + (coop and 4 or 0),
+        MaxActiveConvoyUnits = selected.Convoy + (coop and 2 or 0),
         MaxActiveCentralResponseUnits = selected.Central + (coop and 4 or 0),
     }
 end
@@ -1769,6 +1769,18 @@ local function MonitorWestConvoy(convoyId)
     end
 end
 
+local function RefreshActiveConvoyUnits()
+    local phase = MissionState.Phase2
+    local active = {}
+    for _, convoy in pairs(phase.Convoys) do
+        if not convoy.Resolved then
+            AppendUnits(active, PruneLivingUnits(convoy.Units))
+        end
+    end
+    phase.ConvoyUnits = active
+    return active
+end
+
 function SpawnWestConvoy()
     local phase = MissionState.Phase2
     if MissionState.MissionEnded
@@ -1779,7 +1791,7 @@ function SpawnWestConvoy()
         return {}
     end
 
-    phase.ConvoyUnits = PruneLivingUnits(phase.ConvoyUnits)
+    RefreshActiveConvoyUnits()
     if table.getn(phase.ConvoyUnits) >= phase.Limits.MaxActiveConvoyUnits then
         DebugLog('CONVOY', 'Active convoy cap reached')
         return {}
