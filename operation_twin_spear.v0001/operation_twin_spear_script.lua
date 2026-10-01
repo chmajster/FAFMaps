@@ -376,7 +376,7 @@ local function GetMarkerPosition(markerName)
     return marker.position
 end
 
-local function SpawnUnitAtPosition(armyName, blueprintId, position, heading)
+local function SpawnUnitAtPosition(armyName, blueprintId, position, heading, altitude)
     if not position then
         return nil
     end
@@ -387,10 +387,11 @@ local function SpawnUnitAtPosition(armyName, blueprintId, position, heading)
         return nil
     end
 
+    local terrainHeight = GetTerrainHeight(position[1], position[3])
     local unit = CreateUnitHPR(
         blueprintId,
         armyName,
-        position[1], GetTerrainHeight(position[1], position[3]), position[3],
+        position[1], terrainHeight + (altitude or 0), position[3],
         heading or 0, 0, 0
     )
 
@@ -405,7 +406,7 @@ local function SpawnUnitAtMarker(armyName, blueprintId, markerName, heading)
     return SpawnUnitAtPosition(armyName, blueprintId, GetMarkerPosition(markerName), heading)
 end
 
-local function SpawnOffsetUnit(armyName, blueprintId, markerName, offsetX, offsetZ, heading)
+local function SpawnOffsetUnit(armyName, blueprintId, markerName, offsetX, offsetZ, heading, altitude)
     local base = GetMarkerPosition(markerName)
     if not base then
         return nil
@@ -415,7 +416,8 @@ local function SpawnOffsetUnit(armyName, blueprintId, markerName, offsetX, offse
         armyName,
         blueprintId,
         {base[1] + offsetX, base[2], base[3] + offsetZ},
-        heading
+        heading,
+        altitude
     )
 end
 
@@ -633,7 +635,8 @@ local function SpawnWaveUnits(config)
                     config.SpawnMarker,
                     (column - 1.5) * 4,
                     row * 4,
-                    3.141592653589793
+                    3.141592653589793,
+                    config.Air and 25 or 0
                 )
                 if unit then
                     table.insert(units, unit)
@@ -696,7 +699,7 @@ function SpawnAttackWave(configOrName)
         brain:AssignUnitsToPlatoon(platoon, units, 'Attack', config.Air and 'NoFormation' or 'AttackFormation')
     end
 
-    if config.SplitTargets and IsArmyActive(ScenarioInfo.Player2, Army.Player2) then
+    if config.SplitTargets and table.getn(GetAvailableWaveTargets()) >= 2 then
         local p1Units = {}
         local p2Units = {}
         for index, unit in ipairs(units) do
@@ -947,6 +950,10 @@ local function HandleForwardCommandDestroyed()
 
     MissionState.CommandPostDestroyed = true
     MissionState.TargetDestroyed.ForwardCommand = true
+
+    if MissionState.CurrentPhase == 0 then
+        StartPhase1()
+    end
     MarkObjectiveCompleted('ForwardCommand')
 
     SetObjectiveManualResultIfActive(MissionState.Objectives.ForwardCommand, true)
