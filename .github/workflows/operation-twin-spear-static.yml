@@ -1,0 +1,29 @@
+name: Operation Twin Spear static checks
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/**'
+  pull_request:
+
+jobs:
+  stage1-static-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Lua compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.4
+          command -v luac
+
+      - name: Validate mission contract and Lua syntax
+        run: python3 operation_twin_spear.v0001/tools/static_check.py
