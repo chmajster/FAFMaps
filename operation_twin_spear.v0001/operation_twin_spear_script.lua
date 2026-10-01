@@ -184,7 +184,7 @@ local function SpawnUnitAtPosition(armyName, blueprintId, position, heading)
     local unit = CreateUnitHPR(
         blueprintId,
         armyName,
-        position[1], position[2], position[3],
+        position[1], GetTerrainHeight(position[1], position[3]), position[3],
         heading or 0, 0, 0
     )
 
