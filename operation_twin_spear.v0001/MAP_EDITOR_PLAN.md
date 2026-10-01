@@ -1,6 +1,6 @@
 # Operation Twin Spear — MAP_EDITOR_PLAN
 
-Stage 3 map-authoring specification for the complete Phase 2 of a 20 km × 20 km FAF co-op campaign map. It retains all Stage 2 / Phase 1 terrain and adds the Western Logistics Base, Eastern Air Control Base and central valley.
+Stage 4 map-authoring specification for the complete Phase 3 of a 20 km × 20 km FAF co-op campaign map. It retains all Phase 1–2 terrain and adds the northern strategic defense belt: Long-Range Artillery, Heavy Defense Network, Reinforcement Gateway, forward-operating space and the still-locked finale boundary.
 
 The Lua/save contract uses a 1024 × 1024 map coordinate space:
 
@@ -650,3 +650,186 @@ The binary map is ready for Stage 3 / complete Phase 2 when:
 - `AREA_PHASE_3` opens only the far-northern approach after both primary objectives,
 - all required chains pass pathing tests,
 - props/wrecks do not compromise building or performance.
+
+# Stage 4 — Complete Phase 3 Map Editor Handoff
+
+The Lua/save contract already contains every Phase 3 marker, chain, area, resource marker and Cybran unit group. Remaining Map Editor work is terrain sculpting, props, passability validation and binary `.scmap` export.
+
+`save.lua` marker Y is intentionally zero. Runtime aligns scripted units to terrain. Elevations below are Map Editor terrain targets.
+
+## 14. Phase 3 areas
+
+| Area | Bounds | Function |
+|---|---|---|
+| `AREA_PHASE_3_WEST` | X 32–400, Z 176–352 | Artillery sector |
+| `AREA_PHASE_3_CENTER` | X 376–648, Z 176–352 | Heavy Defense / central FOB |
+| `AREA_PHASE_3_EAST` | X 624–992, Z 176–352 | Gateway sector |
+| `AREA_PHASE_3` | X 32–992, Z 176–1024 | Combined Phase 1–3 play space |
+| `AREA_FINALE` | X 0–1024, Z 0–1024 | Locked until Phase 3 completion |
+
+Final defense line: approximately Z=176. Keep the Main Cybran Base around `CYBRAN_MAIN_BASE (512,118)` unreachable before `AREA_FINALE` is unlocked.
+
+## 15. Phase 3 marker coordinates and elevation
+
+| Marker | X | Z | Target elevation | Purpose |
+|---|---:|---:|---:|---|
+| `PHASE3_ARTILLERY_CENTER` | 260 | 246 | 36–40 | artillery base center |
+| `PHASE3_ARTILLERY_CORE` | 260 | 222 | 38–42 | T3 artillery core |
+| `PHASE3_DEFENSE_CENTER` | 512 | 246 | 30–34 | central fortification center |
+| `PHASE3_DEFENSE_CONTROL_NODE` | 512 | 218 | 32–36 | primary control node |
+| `PHASE3_GATEWAY_CENTER` | 764 | 246 | 28–32 | gateway staging center |
+| `PHASE3_REINFORCEMENT_GATEWAY` | 764 | 218 | 30–34 | primary gateway core |
+| `PHASE3_RADAR_01` | 430 | 208 | 34–38 | strategic radar west |
+| `PHASE3_RADAR_02` | 650 | 208 | 32–36 | strategic radar east |
+| `PHASE3_DATA_CORE` | 560 | 230 | 31–35 | optional intel target |
+| `PHASE3_EXPANSION_WEST` | 340 | 315 | 24–28 | player expansion |
+| `PHASE3_EXPANSION_CENTER` | 512 | 300 | 24–28 | forward operating base |
+| `PHASE3_EXPANSION_EAST` | 684 | 315 | 24–28 | player expansion |
+| `PHASE3_TRANSPORT_ENTRY` | 940 | 205 | air | transport entry |
+| `PHASE3_TRANSPORT_EXIT` | 980 | 330 | air | transport exit |
+| `PHASE3_DROP_WEST` | 410 | 505 | 20–26 | west/rear drop |
+| `PHASE3_DROP_EAST` | 614 | 505 | 20–26 | east/rear drop |
+| `PHASE3_DEFENSE_REBUILD_01` | 470 | 250 | 30–34 | bounded rebuild cell |
+| `PHASE3_DEFENSE_REBUILD_02` | 554 | 250 | 30–34 | bounded rebuild cell |
+| `PHASE3_DEFENSE_REBUILD_03` | 512 | 278 | 28–32 | bounded rebuild cell |
+
+## 16. ARTILLERY SECTOR
+
+Recommended footprint: X 190–330, Z 188–316. Core plateau target height 38–42; southern approach floor 24–28.
+
+Terrain requirements:
+
+- raised artillery plateau with broad line of fire,
+- at least three practical approaches: south-west, south-center and south-east/lateral,
+- no single absurd choke point,
+- minimum practical land corridor width about 36 map units; 48+ preferred,
+- clear rotation/footprint around `PHASE3_ARTILLERY_CORE`,
+- no props in factory exits, shield footprint or artillery rotation footprint.
+
+Groups already defined: `PHASE3_ARTILLERY_BASE`, `ARTILLERY_CORE`, `ARTILLERY_DEFENSE`, `ARTILLERY_DEFENSE_NORMAL`, `ARTILLERY_DEFENSE_HARD`, `ARTILLERY_SUPPORT`.
+
+## 17. HEAVY DEFENSE SECTOR
+
+Recommended footprint: X 400–624, Z 176–324. Defensive shelf target height 30–34; front engagement floor 24–28.
+
+Create a broad fortified front with at least three approaches:
+
+1. west shoulder X≈420–465,
+2. center X≈485–540,
+3. east shoulder X≈560–610.
+
+Keep `PHASE3_DEFENSE_CONTROL_NODE` protected but reachable after the front is breached. Existing turrets stay alive when the node dies; only scripted repair/rebuild and defense-sector generation stop.
+
+Reserve buildable, prop-free cells at all `PHASE3_DEFENSE_REBUILD_*` markers. Groups: `PHASE3_DEFENSE_BASE`, `DEFENSE_NODE`, `DEFENSE_STATIC*`, `DEFENSE_FACTORIES*`, `DEFENSE_ENGINEERS*`, `DEFENSE_GARRISON`.
+
+## 18. REINFORCEMENT GATEWAY
+
+Recommended footprint: X 680–846, Z 188–326. Staging floor 28–32. Provide a southern apron of at least about 100×70 map units.
+
+Keep clear space around `PHASE3_REINFORCEMENT_GATEWAY (764,218)`, all factory exits, `PHASE3_GATEWAY_CENTER`, and the east/north-east transport approach. Visual language should be a staging base: hardstand, sparse walls, landing lights, broad open apron.
+
+Groups: `PHASE3_GATEWAY_BASE`, `GATEWAY_CORE`, `GATEWAY_PRODUCTION*`, `GATEWAY_AA*`, `GATEWAY_SUPPORT`.
+
+## 19. Phase 3 land attack paths
+
+Required chains:
+
+- `CHAIN_PHASE3_ATTACK_WEST`
+- `CHAIN_PHASE3_ATTACK_CENTER`
+- `CHAIN_PHASE3_ATTACK_EAST`
+- `CHAIN_PHASE3_FLANK_WEST`
+- `CHAIN_PHASE3_FLANK_EAST`
+
+West/east flank routes must remain genuinely separate from the central lane. Validate each with 20 T2 units, 6–10 T3 units including `url0303`, and one `url0304`. No route may stall on ramps, cliff lips or props.
+
+## 20. Transport routes
+
+Required chains:
+
+- `CHAIN_REINFORCEMENT_AIR_ENTRY`
+- `CHAIN_REINFORCEMENT_DROP_WEST`
+- `CHAIN_REINFORCEMENT_DROP_EAST`
+- `CHAIN_REINFORCEMENT_EXIT`
+
+Route:
+
+```text
+PHASE3_TRANSPORT_ENTRY (940,205)
+        ↓
+REINFORCEMENT_AIR_01 (850,220)
+        ↓
+REINFORCEMENT_AIR_02 (760,280)
+       / \
+      /   \
+DROP WEST   DROP EAST
+(410,505)   (614,505)
+      \     /
+       PHASE3_TRANSPORT_EXIT (980,330)
+```
+
+Keep the descent/unload ground broad and pathable. Do not put cliffs, tall terrain spikes, dense props or water under either final drop point. Neither drop zone is an ACU spawn.
+
+## 21. Resource markers
+
+West expansion:
+
+- `PHASE3_WEST_MASS_01`
+- `PHASE3_WEST_MASS_02`
+- `PHASE3_WEST_MASS_03`
+
+Center / intended forward operating base:
+
+- `PHASE3_CENTER_MASS_01..04`
+- `PHASE3_CENTER_HYDRO_01`
+
+East expansion:
+
+- `PHASE3_EAST_MASS_01..03`
+
+Central expansion is intentionally the richest. Preserve roughly 120×90 usable build space around `PHASE3_EXPANSION_CENTER` for factories, shields and artillery. Do not add additional Phase 3 mass unless runtime economy testing proves it necessary.
+
+## 22. Main Base preview and finale boundary
+
+Recommended Main Base plateau height: 38–44 around Z≈118. `FINALE_PREVIEW_FOUNDATIONS` only reserves future Stage 5 positions and is not spawned by Phase 3 code.
+
+Before Phase 3 completion the north must remain inaccessible. After `CompletePhase3()`, `AREA_FINALE` opens and the final-assault placeholder objective becomes active. Do not pre-activate Experimental, boss, strategic-nuclear or final-survival systems.
+
+## 23. Phase 3 prop guidance
+
+Artillery sector: sparse rocks/wall fragments on plateau edges, never across a full approach.
+
+Defense center: fortification props may define lanes but must not narrow them below T3 formation width; rebuild cells and factory exits stay completely clear.
+
+Gateway: large unobstructed apron, sparse walls/lights, no trees in transport unload lanes.
+
+FOB/resources: no props directly on resource markers and no excessive reclaim windfall.
+
+## 24. Phase 3 Pathing validation
+
+Before binary export:
+
+1. Move a T3 mixed formation from Phase 2 center to all three strategic sectors.
+2. Traverse all five Phase 3 land chains with a 20+ unit formation.
+3. Verify `url0304` can use center and both flank routes.
+4. Verify `ura0104` can enter, descend, unload and exit on both transport chains.
+5. Verify all factory exits are clear.
+6. Verify every `PHASE3_DEFENSE_REBUILD_*` location is buildable.
+7. Verify no Phase 3 resource marker is on a steep slope.
+8. Verify the central FOB supports several factories and shields.
+9. Verify normal land movement stops at the final defense line while only `AREA_PHASE_3` is active.
+10. Verify `AREA_FINALE` exposes the complete north after scripted completion.
+
+## 25. Manual Stage 4 / Phase 3 acceptance
+
+The `.scmap` is ready for runtime Phase 3 tests when:
+
+- Artillery Sector has a raised multi-access plateau.
+- Heavy Defense Sector offers at least three wide approaches.
+- Gateway has a large open staging/transport apron.
+- all Phase 3 attack and flank chains are T3-pathable,
+- both transport drops have valid unload ground,
+- central FOB construction space is adequate,
+- all Phase 3 resources are buildable,
+- Main Base is inaccessible before `AREA_FINALE`,
+- objective structure footprints match `save.lua`,
+- props do not block factory exits, rebuild cells, paths or resource points.
