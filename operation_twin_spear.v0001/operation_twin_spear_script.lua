@@ -35,6 +35,7 @@ local UnitBlueprints = {
         AssaultBot = 'url0107',
         HeavyTankT2 = 'url0202',
         MobileAAT2 = 'url0205',
+        MobileStealth = 'url0306',
         Engineer = 'url0105',
         AirScout = 'ura0101',
         Interceptor = 'ura0102',
@@ -450,6 +451,7 @@ local WaveDefinitions = {
         HardUnits = {
             {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 2},
             {Blueprint = UnitBlueprints.Cybran.MobileAAT2, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.MobileStealth, Count = 1},
         },
     },
     CENTRAL_RESPONSE_FLANK = {
