@@ -1,6 +1,6 @@
 # Operation Twin Spear — MAP_EDITOR_PLAN
 
-Stage 2 terrain and map-authoring specification for a 20 km × 20 km FAF co-op campaign map.
+Stage 3 map-authoring specification for the complete Phase 2 of a 20 km × 20 km FAF co-op campaign map. It retains all Stage 2 / Phase 1 terrain and adds the Western Logistics Base, Eastern Air Control Base and central valley.
 
 The Lua/save contract uses a 1024 × 1024 map coordinate space:
 
@@ -51,7 +51,7 @@ The binary `operation_twin_spear.scmap` must be created in FAF Map Editor. Do no
                          SOUTH (Z ~= 1024)
 ```
 
-Stage 2 implements only the southern start zone, river, central expansion and Forward Outpost. Northern sectors are terrain/marker reservations for later stages.
+Stage 2 implemented the southern start zone, river, first central expansion and Forward Outpost. Stage 3 now activates the mid-west, mid-east and central valley for Phase 2. Only the far-north defense line and main Cybran base remain reserved for later stages.
 
 ## 2. Terrain concept
 
@@ -138,35 +138,69 @@ Approach geometry:
 
 Use cliffs or steep slopes around parts of the east/west sides so players naturally attack from the crossings and southern approaches. Each main approach must remain wide enough for 20–30 unit land formations.
 
-### Central pass / future north
+### Phase 2 central valley
 
-Between Z 470–548 make a broad valley/ramp leading north. Do not complete the northern defenses yet. Leave clear route space for `CHAIN_FORWARD_REINFORCEMENT` and later Phase 2 movement.
+Between Z 352–548 create a broad, traversable valley linking both flanks. The central route is not a full enemy base. It is a movement corridor, battle space and optional economic expansion around `PHASE2_CENTRAL_EXPANSION (512,470)`.
 
-### Northern terrain reservations
+Recommended terrain:
 
-Do not build the final bases in Stage 2, but shape broad terrain volumes:
+- valley floor: height 18–24,
+- shallow ridges west/east: 28–36,
+- at least 140–180 map units of usable combat width,
+- no one-way labyrinth,
+- two lateral connectors so armies can transfer West ↔ Center ↔ East,
+- clear lane from `CENTRAL_RESPONSE_SPAWN` to `CENTRAL_RESPONSE_TARGET`.
 
-- west sector around `WEST_SECTOR_FUTURE (300,300)`
-- east sector around `EAST_SECTOR_FUTURE (724,300)`
-- defense line around `DEFENSE_LINE_CENTER (512,230)`
-- main base plateau around `CYBRAN_MAIN_BASE (512,118)`
+### Western Logistics Base terrain
 
-Recommended heights can rise gradually into 35–50, with valleys preserved for later attack routes.
+Base footprint:
+
+- X 225–375
+- Z 370–495
+- center: `WEST_BASE_CENTER (300,420)`
+- recommended base plateau: height 28–34
+
+Keep the western terrain relatively open. Provide two broad southern approaches and one narrower central connector. The supply route from `WEST_SUPPLY_ENTRY (250,354)` to `WEST_SUPPLY_EXIT (300,410)` must be land-passable for engineers and escorted formations. Avoid steep ramps on `CHAIN_WEST_SUPPLY`.
+
+### Eastern Air Control Base terrain
+
+Base footprint:
+
+- X 650–800
+- Z 360–500
+- center: `EAST_BASE_CENTER (724,420)`
+- recommended base plateau: height 32–40
+
+Use more broken terrain than West: ridges and elevated shelves around the airfield, but keep factory exits and AA arcs unobstructed. At least two land approaches must exist so the sector cannot become a single choke. Air patrol markers require unobstructed aerial paths.
+
+### Far-north terrain reservations
+
+Do not build the final main base yet. Shape only broad terrain volumes around:
+
+- `WEST_SECTOR_FUTURE (300,300)`
+- `EAST_SECTOR_FUTURE (724,300)`
+- `DEFENSE_LINE_CENTER (512,230)`
+- `CYBRAN_MAIN_BASE (512,118)`
+
+Recommended heights can rise gradually into 35–50, with valleys preserved for Phase 3 attack routes.
 
 ## 3. Playable areas
 
 | Area | Rectangle X0,Z0,X1,Z1 | Phase | Purpose |
 |---|---|---|---|
 | `AREA_PHASE_1` | 96,548,928,1024 | Phase 1 | South ~46% plus Forward Outpost |
-| `AREA_PHASE_2` | 64,352,960,1024 | Phase 2 | Unlock central/northern approach |
-| `AREA_PHASE_3` | 32,176,992,1024 | Future | Unlock west/east sectors |
+| `AREA_PHASE_2` | 64,352,960,1024 | Phase 2 | Unified playable rectangle for West + East + Center |
+| `AREA_PHASE_2_WEST` | 64,352,480,548 | Phase 2 | Western Logistics sector authoring/reference area |
+| `AREA_PHASE_2_EAST` | 544,352,960,548 | Phase 2 | Eastern Air Control sector authoring/reference area |
+| `AREA_PHASE_2_CENTER` | 420,352,604,548 | Phase 2 | Central valley authoring/reference area |
+| `AREA_PHASE_3` | 32,176,992,1024 | Phase 3 placeholder | Unlock far-northern approach after both Phase 2 objectives |
 | `AREA_FINALE` | 0,0,1024,1024 | Future | Full map |
 | `AREA_FORWARD_DISCOVERY` | 376,540,648,710 | Phase 1 | Objective discovery trigger |
 | `AREA_FORWARD_OUTPOST` | 440,548,584,670 | Phase 1 | Forward Outpost footprint |
 | `AREA_P1_START` | 240,808,410,970 | Phase 1 | P1 base basin |
 | `AREA_P2_START` | 614,808,784,970 | Phase 1 | P2 base basin |
 
-The script calls `ScenarioFramework.SetPlayableArea('AREA_PHASE_1', false)` on start and expands to `AREA_PHASE_2` after Phase 1.
+The script calls `ScenarioFramework.SetPlayableArea('AREA_PHASE_1', false)` on start, expands to the unified `AREA_PHASE_2` after Phase 1, and only expands to `AREA_PHASE_3` after both Phase 2 primary objectives are complete. The West/East/Center sub-areas are authoring/reference partitions inside the unified Phase 2 rectangle.
 
 ## 4. Marker table
 
@@ -203,6 +237,33 @@ The script calls `ScenarioFramework.SetPlayableArea('AREA_PHASE_1', false)` on s
 | `CYBRAN_MAIN_BASE` | Blank | 512 | 118 | future | Main base reservation |
 
 Stage 1 alias markers remain in `save.lua` for compatibility. Do not delete them until later migrations deliberately remove them.
+
+### Phase 2 marker additions
+
+| Name | Type | X | Z | Phase | Purpose |
+|---|---|---:|---:|---|---|
+| `WEST_BASE_CENTER` | Blank | 300 | 420 | 2 | Western Logistics Base center |
+| `WEST_LOGISTICS_COMMAND` | Blank | 300 | 392 | 2 | West primary objective anchor |
+| `WEST_FACTORY_01` | Blank | 272 | 426 | 2 | West factory footprint |
+| `WEST_FACTORY_02` | Blank | 328 | 426 | 2 | West factory footprint |
+| `WEST_SUPPLY_ENTRY` | Blank | 250 | 354 | 2 | Convoy entry from north |
+| `WEST_SUPPLY_EXIT` | Blank | 300 | 410 | 2 | Convoy arrival / bonus trigger |
+| `WEST_ATTACK_01` | Blank | 320 | 448 | 2 | West attack route node |
+| `WEST_ATTACK_02` | Blank | 350 | 492 | 2 | West attack route node |
+| `WEST_ATTACK_03` | Blank | 390 | 540 | 2 | West attack route node |
+| `EAST_BASE_CENTER` | Blank | 724 | 420 | 2 | Eastern Air Control Base center |
+| `EAST_AIR_CONTROL_COMMAND` | Blank | 724 | 392 | 2 | East primary objective anchor |
+| `EAST_AIR_FACTORY_01` | Blank | 690 | 430 | 2 | East air-factory footprint |
+| `EAST_AIR_FACTORY_02` | Blank | 758 | 430 | 2 | East air-factory footprint |
+| `EAST_RADAR_01` | Blank | 664 | 388 | 2 | Radar network objective |
+| `EAST_RADAR_02` | Blank | 724 | 368 | 2 | Radar network objective |
+| `EAST_RADAR_03` | Blank | 784 | 388 | 2 | Radar network objective |
+| `CENTRAL_RESPONSE_SPAWN` | Blank | 512 | 354 | 2 | Central Response spawn |
+| `CENTRAL_RESPONSE_TARGET` | Blank | 512 | 520 | 2 | Central Response staging/engagement point |
+| `PHASE2_CENTRAL_EXPANSION` | Blank | 512 | 470 | 2 | Optional Phase 2 forward-base location |
+
+The additional patrol and intermediate route markers in `save.lua` are authoritative. Their coordinates may be adjusted in FAF Map Editor only if the corresponding route remains semantically equivalent and the Lua/save contract is updated with the same names.
+
 
 ## 5. Resource markers
 
@@ -256,6 +317,31 @@ P2:
 
 These deposits are initially occupied by Cybran extractors. Clearing the outpost converts the area into usable forward economy.
 
+### Phase 2 central expansion
+
+- `PHASE2_CENTER_MASS_01 (474,474)`
+- `PHASE2_CENTER_MASS_02 (498,454)`
+- `PHASE2_CENTER_MASS_03 (526,454)`
+- `PHASE2_CENTER_MASS_04 (550,474)`
+- `PHASE2_CENTER_HYDRO_01 (512,494)`
+
+### Phase 2 support-base economy
+
+West:
+
+- `WEST_MASS_01 (252,430)`
+- `WEST_MASS_02 (348,430)`
+- `WEST_MASS_03 (300,478)`
+
+East:
+
+- `EAST_MASS_01 (676,438)`
+- `EAST_MASS_02 (772,438)`
+- `EAST_MASS_03 (724,484)`
+
+These base economy points begin occupied by Cybran extractors and become normal map resources after the structures are destroyed.
+
+
 ## 6. Chains
 
 ### CHAIN_FORWARD_TO_P1
@@ -298,6 +384,57 @@ CYBRAN_FORWARD_SPAWN_WEST
 ```
 
 Check every chain with FAF Map Editor path visualization. Land routes must not cross cliffs, deep water or impassable prop clusters.
+
+### CHAIN_WEST_SUPPLY
+
+```text
+WEST_SUPPLY_ENTRY
+ -> WEST_SUPPLY_01
+ -> WEST_SUPPLY_02
+ -> WEST_SUPPLY_EXIT
+```
+
+Must support escorted engineer convoys without single-file pathing.
+
+### CHAIN_WEST_ATTACK
+
+```text
+WEST_ATTACK_01
+ -> WEST_ATTACK_02
+ -> WEST_ATTACK_03
+ -> CROSSING_WEST
+ -> P1_ATTACK_TARGET
+```
+
+### CHAIN_EAST_AIR_PATROL_01 / 02
+
+Two independent loops around the East sector. The radar-secondary reward reduces the active route set to route 01 only. Destroying `EAST_AIR_CONTROL_COMMAND` stops new patrol generation completely.
+
+### CHAIN_CENTER_AIR_PATROL
+
+Wide loop over the central valley. Keep it clear of tall terrain spikes that would cause visually poor low-altitude routing.
+
+### CHAIN_CENTRAL_RESPONSE
+
+```text
+CENTRAL_RESPONSE_SPAWN
+ -> CENTRAL_RESPONSE_TARGET
+ -> CROSSING_CENTER_OPTIONAL
+ -> P1_ATTACK_TARGET
+```
+
+### CHAIN_CENTRAL_FLANK
+
+Hard/co-op flank route:
+
+```text
+CENTRAL_RESPONSE_SPAWN
+ -> CENTRAL_FLANK_01
+ -> CENTRAL_FLANK_02
+ -> CROSSING_EAST
+ -> P2_ATTACK_TARGET
+```
+
 
 ## 7. Forward Outpost unit layout
 
@@ -355,7 +492,95 @@ The T2 HQ model is intentionally reused as a command/communications facility unt
 - 2 × T1 Mobile AA — `url0104`
 - 1 × T1 Land Scout — `url0101`
 
-## 8. Prop zones
+
+## 8. Phase 2 base footprints
+
+### Western Logistics Base
+
+Core:
+
+- 2 × T1 Land Factory
+- T2 Land HQ/factory present on Normal/Hard through `WEST_PRODUCTION_NORMAL`
+- power, mass extractors, mass storage and energy storage
+- point defense and AA
+- TMD on Normal/Hard
+- 2 controlled engineers
+- land garrison
+
+Objective structure:
+
+- `West_Logistics_Command`
+- blueprint `urb0201`
+- custom name: **Western Logistics Command**
+- not capturable/reclaimable
+- never rebuilt by engineer support
+
+Hard adds an extra factory and additional static defenses. The western footprint must keep wide factory exits toward south/east.
+
+### Eastern Air Control Base
+
+Core:
+
+- 2 × T1 Air Factory
+- T2 Air Factory on Normal/Hard
+- `urb5202` Air Staging Facility
+- power and mass economy
+- heavy static AA emphasis
+- TMD on Normal/Hard
+- 2 controlled engineers
+- light land garrison
+
+Objective structure:
+
+- `East_Air_Control_Command`
+- blueprint `urb5202`
+- custom name: **Eastern Air Control Command**
+- not capturable/reclaimable
+
+Radar network:
+
+- 3 × `urb3101`
+- separated enough that one small land push cannot accidentally kill all three at once
+- all three must remain reachable by land units
+
+## 9. Phase 2 elevation, chokepoints and ramps
+
+West should favor land maneuver:
+
+- plateau 28–34,
+- two southern ramps at least 55–70 units wide,
+- one central connector toward X≈430–500,
+- no hard choke narrower than ~40 units on the main assault route.
+
+East should favor air pressure but remain land-assaultable:
+
+- base shelf 32–40,
+- western approach around X≈640–680,
+- southern approach around X≈700–770,
+- ridges may narrow sight lines but must not create a one-route fortress.
+
+Central valley:
+
+- floor 18–24,
+- broad X≈420–604 engagement space,
+- optional forward base around `PHASE2_CENTRAL_EXPANSION`,
+- lateral connectors to both sector plateaus.
+
+## 10. Phase 2 patrol and combat-route validation
+
+Validate:
+
+1. `CHAIN_WEST_SUPPLY` with 6–8 mixed land units including an engineer.
+2. `CHAIN_WEST_ATTACK` with 20–30 units.
+3. Both East air patrol loops and the central air loop.
+4. `CHAIN_CENTRAL_RESPONSE` with a large mixed formation.
+5. `CHAIN_CENTRAL_FLANK` from spawn to P2 route.
+6. West ↔ Center ↔ East lateral transfer without returning to the southern river crossings.
+7. Factory exit clearance for all West land and East air factories.
+8. No Phase 2 resource point is blocked by cliffs or decorative props.
+9. `AREA_PHASE_3` expansion does not expose the main base plateau at Z≈118 yet.
+
+## 11. Prop zones
 
 Props live in the binary `.scmap`, not in the hand-maintained save contract.
 
@@ -393,7 +618,7 @@ Use walls, lights, small wrecks and a few rocks to make the base feel military. 
 
 Do not use dense forests inside player build basins or on route chains.
 
-## 9. Pathing validation
+## 12. Pathing validation
 
 Before runtime testing:
 
@@ -406,9 +631,9 @@ Before runtime testing:
 7. Verify no decorative prop blocks resource construction.
 8. Verify `CHAIN_FORWARD_REINFORCEMENT` is land-passable from Z≈470 to the outpost.
 
-## 10. Manual Stage 2 acceptance
+## 13. Manual Stage 3 / Phase 2 acceptance
 
-The binary map is ready for Stage 2 when:
+The binary map is ready for Stage 3 / complete Phase 2 when:
 
 - both players have a viable base basin,
 - each start has exactly four nearby Mass markers and one Hydrocarbon,
@@ -417,6 +642,11 @@ The binary map is ready for Stage 2 when:
 - the Forward Outpost plateau supports all save.lua structures without overlap,
 - the central expansion is contestable but becomes practical after the outpost is broken,
 - `AREA_PHASE_1` contains all Stage 2 gameplay,
-- `AREA_PHASE_2` expansion exposes the next northern approach,
+- `AREA_PHASE_2` contains both active support sectors and the central valley,
+- `AREA_PHASE_2_WEST`, `AREA_PHASE_2_EAST` and `AREA_PHASE_2_CENTER` match the intended terrain partitions,
+- Western Logistics Base supports wide land engagements and convoy routing,
+- Eastern Air Control Base supports clean air-factory exits and all three patrol loops,
+- the central valley supports the Central Response and player force transfer,
+- `AREA_PHASE_3` opens only the far-northern approach after both primary objectives,
 - all required chains pass pathing tests,
 - props/wrecks do not compromise building or performance.
