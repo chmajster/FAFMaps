@@ -1344,7 +1344,14 @@ local function IssueWaveOrders(units, target, air, config)
         return
     end
 
-    if not (config and config.AttackChain) then
+    if config and config.AttackChain and config.ContinueToTarget then
+        local finalPosition = GetMarkerPosition(
+            target == Army.Player2 and 'P2_ATTACK_TARGET' or 'P1_ATTACK_TARGET'
+        )
+        if finalPosition then
+            IssueAggressiveMove(units, finalPosition)
+        end
+    elseif not (config and config.AttackChain) then
         local chainName = target == Army.Player2 and 'CHAIN_FORWARD_TO_P2' or 'CHAIN_FORWARD_TO_P1'
         for _, position in ipairs(ScenarioUtils.ChainToPositions(chainName)) do
             IssueAggressiveMove(units, position)
@@ -3032,6 +3039,25 @@ function CanSpawnPhase3Attack(poolName, expectedUnits)
     return table.getn(pool) + (expectedUnits or 1) <= limit
 end
 
+local function EstimatePhase3WaveUnits(config)
+    local total = 0
+    local function AddComposition(composition)
+        if not composition then return end
+        for _, spec in ipairs(composition) do
+            total = total + GetScaledUnitCount(spec.Count or 0)
+        end
+    end
+
+    AddComposition(config.Units)
+    if MissionState.Difficulty >= 2 then
+        AddComposition(config.NormalUnits)
+    end
+    if MissionState.Difficulty == 3 then
+        AddComposition(config.HardUnits)
+    end
+    return total
+end
+
 function LaunchConfiguredAttack(configName, preferredTarget)
     local base = WaveDefinitions[configName]
     if not base or MissionState.CurrentPhase ~= 3 or MissionState.Phase3.Finished then
@@ -3039,7 +3065,8 @@ function LaunchConfiguredAttack(configName, preferredTarget)
     end
 
     local poolName = base.TrackPool or 'LandAttackUnits'
-    if not CanSpawnPhase3Attack(poolName, 4) then
+    local expectedUnits = EstimatePhase3WaveUnits(base)
+    if not CanSpawnPhase3Attack(poolName, expectedUnits) then
         DebugLog('PHASE3', 'Unit cap blocks ' .. tostring(configName))
         return {}
     end
@@ -3049,6 +3076,9 @@ function LaunchConfiguredAttack(configName, preferredTarget)
         config[key] = value
     end
     config.PreferredTarget = preferredTarget or SelectPhase3AttackTarget()
+    if not config.Air and config.AttackChain then
+        config.ContinueToTarget = true
+    end
     return SpawnAttackWave(config)
 end
 
@@ -3243,6 +3273,12 @@ function SpawnTransportDrop()
         transportCount = 2
     end
 
+    local expectedCargo = transportCount * 8
+    if not CanSpawnPhase3Attack('GatewayUnits', expectedCargo) then
+        DebugLog('TRANSPORT', 'Drop suppressed by Phase 3 reinforcement cap')
+        return {}
+    end
+
     local transports = {}
     local cargoAll = {}
     local escortsAll = {}
@@ -3297,7 +3333,11 @@ function SpawnTransportDrop()
                 IssueClearCommands(cargo)
                 IssueTransportLoad(cargo, transport)
             end
-            AppendUnits(escortsAll, SpawnTransportEscort(transportIndex))
+            if CanSpawnPhase3Attack('AirAttackUnits', MissionState.Difficulty == 3 and 4 or 2) then
+                local escorts = SpawnTransportEscort(transportIndex)
+                AppendUnits(escortsAll, escorts)
+                AppendUnits(phase.AirAttackUnits, escorts)
+            end
         end
     end
 
@@ -3335,11 +3375,13 @@ function SpawnTransportDrop()
     end
 
     if table.getn(cargoAll) > 0 then
-        IssueWaveOrders(cargoAll, target, false, {AttackChain = flankChain})
+        IssueWaveOrders(cargoAll, target, false, {
+            AttackChain = flankChain,
+            ContinueToTarget = true,
+        })
     end
     if table.getn(escortsAll) > 0 then
         IssueWaveOrders(escortsAll, target, true, {AirTargeting = true})
-        AppendUnits(phase.AirAttackUnits, escortsAll)
     end
 
     return transports
