@@ -5,6 +5,7 @@ local ScenarioUtils = import('/lua/sim/scenarioutilities.lua')
 local DEBUG = false
 local DEBUG_OPTIONS = {
     StartPhase1Immediately = false,
+    StartPhase2Immediately = false,
     SkipIntro = false,
 }
 
@@ -34,8 +35,11 @@ local UnitBlueprints = {
         AssaultBot = 'url0107',
         HeavyTankT2 = 'url0202',
         MobileAAT2 = 'url0205',
+        Engineer = 'url0105',
+        AirScout = 'ura0101',
         Interceptor = 'ura0102',
         Bomber = 'ura0103',
+        Gunship = 'ura0203',
     },
 }
 
@@ -125,9 +129,58 @@ local Dialogues = {
     },
     Phase2 = {
         {
-            text = '[UEF Command]: New sector unlocked. Advance north and stand by for updated objectives.',
+            text = '[UEF Command]: We\'ve identified two support installations. Take them both out before advancing north.',
+            faction = 'UEF',
+            duration = 6,
+        },
+    },
+    Phase2WestDestroyed = {
+        {
+            text = '[UEF Command]: Logistics hub destroyed. Cybran ground reinforcement capacity is dropping.',
             faction = 'UEF',
             duration = 5,
+        },
+    },
+    Phase2EastDestroyed = {
+        {
+            text = '[UEF Command]: Air-control facility neutralized. Enemy air operations are collapsing.',
+            faction = 'UEF',
+            duration = 5,
+        },
+    },
+    Phase2CentralResponse = {
+        {
+            text = '[UEF Command]: Cybran forces are redeploying through the central sector. Prepare for a counterattack.',
+            faction = 'UEF',
+            duration = 5,
+        },
+    },
+    Phase2ConvoysBroken = {
+        {
+            text = '[UEF Command]: Cybran logistics are collapsing. Enemy reinforcement capacity has been reduced.',
+            faction = 'UEF',
+            duration = 5,
+        },
+    },
+    Phase2RadarDestroyed = {
+        {
+            text = '[UEF Command]: Radar network destroyed. Enemy air coordination and patrol coverage are reduced.',
+            faction = 'UEF',
+            duration = 5,
+        },
+    },
+    Phase2Complete = {
+        {
+            text = '[UEF Command]: Both support installations are down. The route north is open.',
+            faction = 'UEF',
+            duration = 6,
+        },
+    },
+    Phase3 = {
+        {
+            text = '[UEF Command]: Northern approach is open. Recon the main Cybran complex and prepare for the next assault.',
+            faction = 'UEF',
+            duration = 6,
         },
     },
 }
@@ -207,6 +260,237 @@ local WaveDefinitions = {
             {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 1},
         },
     },
+
+    WEST_WAVE_LIGHT = {
+        Name = 'WEST_WAVE_LIGHT',
+        Phase = 2,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'WEST_ATTACK_01',
+        AttackChain = 'CHAIN_WEST_ATTACK',
+        PreferredTarget = Army.Player1,
+        TrackPool = 'WestAttackUnits',
+        AllowRepeat = true,
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.AssaultBot, Count = 4},
+            {Blueprint = UnitBlueprints.Cybran.MobileAA, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.LandScout, Count = 1},
+        },
+    },
+    WEST_WAVE_MECH = {
+        Name = 'WEST_WAVE_MECH',
+        Phase = 2,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'WEST_ATTACK_01',
+        AttackChain = 'CHAIN_WEST_ATTACK',
+        PreferredTarget = Army.Player1,
+        TrackPool = 'WestAttackUnits',
+        AllowRepeat = true,
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.AssaultBot, Count = 4},
+            {Blueprint = UnitBlueprints.Cybran.MobileAA, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.MobileArtillery, Count = 1},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.MobileAAT2, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 2},
+        },
+    },
+    WEST_WAVE_ARTILLERY = {
+        Name = 'WEST_WAVE_ARTILLERY',
+        Phase = 2,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'WEST_ATTACK_02',
+        AttackChain = 'CHAIN_WEST_ATTACK',
+        PreferredTarget = Army.Player1,
+        TrackPool = 'WestAttackUnits',
+        AllowRepeat = true,
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.AssaultBot, Count = 3},
+            {Blueprint = UnitBlueprints.Cybran.MobileArtillery, Count = 3},
+            {Blueprint = UnitBlueprints.Cybran.MobileAA, Count = 1},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.MobileAAT2, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 1},
+        },
+    },
+    AIR_SCOUT = {
+        Name = 'AIR_SCOUT',
+        Phase = 2,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'EAST_AIR_ATTACK_SPAWN',
+        PreferredTarget = Army.Player1,
+        TrackPool = 'EastAirUnits',
+        Air = true,
+        AirTargeting = true,
+        AllowRepeat = true,
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.AirScout, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = 1},
+        },
+    },
+    INTERCEPTOR_PATROL = {
+        Name = 'INTERCEPTOR_PATROL',
+        Phase = 2,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'EAST_AIR_ATTACK_SPAWN',
+        TrackPool = 'EastAirUnits',
+        Air = true,
+        PatrolChain = 'CHAIN_EAST_AIR_PATROL_01',
+        AllowRepeat = true,
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = 3},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = 2},
+        },
+    },
+    BOMBER_STRIKE = {
+        Name = 'BOMBER_STRIKE',
+        Phase = 2,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'EAST_AIR_ATTACK_SPAWN',
+        PreferredTarget = Army.Player1,
+        TrackPool = 'EastAirUnits',
+        Air = true,
+        AirTargeting = true,
+        AllowRepeat = true,
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.Bomber, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.Bomber, Count = 1},
+        },
+    },
+    GUNSHIP_RAID = {
+        Name = 'GUNSHIP_RAID',
+        Phase = 2,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'EAST_AIR_ATTACK_SPAWN',
+        PreferredTarget = Army.Player2,
+        TrackPool = 'EastAirUnits',
+        Air = true,
+        AirTargeting = true,
+        AllowRepeat = true,
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.Gunship, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = 1},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.Gunship, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.Gunship, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = 1},
+        },
+    },
+    MIXED_AIR_ATTACK = {
+        Name = 'MIXED_AIR_ATTACK',
+        Phase = 2,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'EAST_AIR_ATTACK_SPAWN',
+        PreferredTarget = Army.Player1,
+        TrackPool = 'EastAirUnits',
+        Air = true,
+        AirTargeting = true,
+        AllowRepeat = true,
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.Bomber, Count = 2},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.Gunship, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.Gunship, Count = 1},
+        },
+    },
+    CENTRAL_RESPONSE_MAIN = {
+        Name = 'CENTRAL_RESPONSE_MAIN',
+        Phase = 2,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'CENTRAL_RESPONSE_SPAWN',
+        AttackChain = 'CHAIN_CENTRAL_RESPONSE',
+        PreferredTarget = Army.Player1,
+        TrackPool = 'CentralResponseUnits',
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.AssaultBot, Count = 6},
+            {Blueprint = UnitBlueprints.Cybran.MobileAA, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.MobileArtillery, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.Engineer, Count = 1},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 2},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.MobileAAT2, Count = 1},
+        },
+    },
+    CENTRAL_RESPONSE_FLANK = {
+        Name = 'CENTRAL_RESPONSE_FLANK',
+        Phase = 2,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'CENTRAL_RESPONSE_SPAWN',
+        AttackChain = 'CHAIN_CENTRAL_FLANK',
+        PreferredTarget = Army.Player2,
+        TrackPool = 'CentralResponseUnits',
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.AssaultBot, Count = 4},
+            {Blueprint = UnitBlueprints.Cybran.MobileArtillery, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.MobileAA, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 1},
+        },
+    },
+    WEST_ADAPTIVE_REINFORCEMENT = {
+        Name = 'WEST_ADAPTIVE_REINFORCEMENT',
+        Phase = 2,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'WEST_ATTACK_03',
+        AttackChain = 'CHAIN_WEST_ATTACK',
+        PreferredTarget = Army.Player1,
+        TrackPool = 'WestAttackUnits',
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.AssaultBot, Count = 4},
+            {Blueprint = UnitBlueprints.Cybran.MobileAA, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.MobileArtillery, Count = 1},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.MobileAAT2, Count = 1},
+        },
+    },
+    EAST_ADAPTIVE_REINFORCEMENT = {
+        Name = 'EAST_ADAPTIVE_REINFORCEMENT',
+        Phase = 2,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'EAST_AIR_ATTACK_SPAWN',
+        PreferredTarget = Army.Player1,
+        TrackPool = 'EastAirUnits',
+        Air = true,
+        AirTargeting = true,
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.Bomber, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.Gunship, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = 2},
+        },
+    },
+
 }
 
 local MissionState = {
@@ -246,6 +530,36 @@ local MissionState = {
     CounterattackUnits = {},
     CounterattackInitialCount = 0,
     Phase1Completed = false,
+
+    Phase2 = {
+        Started = false,
+        WestCompleted = false,
+        EastCompleted = false,
+        WestCommandDestroyed = false,
+        EastCommandDestroyed = false,
+        CentralResponseTriggered = false,
+        AdaptiveResponseTriggered = false,
+        FirstCompletedSide = false,
+        WestConvoysDestroyed = 0,
+        WestConvoysArrived = 0,
+        WestReinforcementReduced = false,
+        RadarNetworkDestroyed = false,
+        RadarRewardApplied = false,
+        Finished = false,
+        Phase3Started = false,
+        WestGroups = {},
+        EastGroups = {},
+        RadarUnits = {},
+        WestAttackUnits = {},
+        EastAirUnits = {},
+        ConvoyUnits = {},
+        CentralResponseUnits = {},
+        Convoys = {},
+        ConvoyCounter = 0,
+        AirRaidCounter = 0,
+        PatrolCounter = 0,
+        Limits = {},
+    },
 }
 
 local function Log(category, message)
@@ -367,6 +681,23 @@ function GetScaledResourceMultiplier()
     return GetPlayerScale().ResourceMultiplier * GetDifficultyScale().ResourceMultiplier
 end
 
+local function GetPhase2Limits()
+    local byDifficulty = {
+        [1] = {West = 12, East = 6, Convoy = 6, Central = 12},
+        [2] = {West = 16, East = 12, Convoy = 10, Central = 18},
+        [3] = {West = 22, East = 18, Convoy = 16, Central = 32},
+    }
+    local selected = byDifficulty[MissionState.Difficulty] or byDifficulty[2]
+    local coop = MissionState.ActivePlayers >= 2
+
+    return {
+        MaxActiveWestAttackUnits = selected.West + (coop and 4 or 0),
+        MaxActiveEastAirUnits = selected.East + (coop and 4 or 0),
+        MaxActiveConvoyUnits = selected.Convoy + (coop and 2 or 0),
+        MaxActiveCentralResponseUnits = selected.Central + (coop and 4 or 0),
+    }
+end
+
 local function GetMarkerPosition(markerName)
     local marker = ScenarioUtils.GetMarker(markerName)
     if not marker or not marker.position then
@@ -374,6 +705,34 @@ local function GetMarkerPosition(markerName)
         return nil
     end
     return marker.position
+end
+
+local function GetPriorityAirTargetPosition(armyName)
+    local fallbackMarker = armyName == Army.Player2 and 'P2_ATTACK_TARGET' or 'P1_ATTACK_TARGET'
+    local fallback = GetMarkerPosition(fallbackMarker)
+    local brain = GetArmyBrain(armyName)
+    if not brain or not categories then
+        return fallback
+    end
+
+    local priorityCategories = {
+        categories.STRUCTURE * categories.ENERGYPRODUCTION,
+        categories.FACTORY,
+        categories.EXPERIMENTAL,
+        categories.MOBILE,
+    }
+
+    local commander = MissionState.PlayerCommanders[armyName]
+    for _, category in ipairs(priorityCategories) do
+        local units = brain:GetListOfUnits(category, false) or {}
+        for _, unit in ipairs(units) do
+            if IsUnitAlive(unit) and unit ~= commander then
+                return unit:GetPosition()
+            end
+        end
+    end
+
+    return fallback
 end
 
 local function SpawnUnitAtPosition(armyName, blueprintId, position, heading, altitude)
@@ -613,20 +972,36 @@ local function SelectWaveTarget(preferredTarget)
     return selected
 end
 
-local function IssueWaveOrders(units, target, air)
-    if not units or table.getn(units) == 0 or not target then
+local function IssueWaveOrders(units, target, air, config)
+    if not units or table.getn(units) == 0 then
+        return
+    end
+
+    if config and config.AttackChain then
+        for _, position in ipairs(ScenarioUtils.ChainToPositions(config.AttackChain)) do
+            IssueAggressiveMove(units, position)
+        end
+    end
+
+    if not target then
         return
     end
 
     if air then
-        local markerName = target == Army.Player2 and 'P2_ATTACK_TARGET' or 'P1_ATTACK_TARGET'
-        IssueAggressiveMove(units, GetMarkerPosition(markerName))
+        local targetPosition = config and config.AirTargeting
+            and GetPriorityAirTargetPosition(target)
+            or GetMarkerPosition(target == Army.Player2 and 'P2_ATTACK_TARGET' or 'P1_ATTACK_TARGET')
+        if targetPosition then
+            IssueAggressiveMove(units, targetPosition)
+        end
         return
     end
 
-    local chainName = target == Army.Player2 and 'CHAIN_FORWARD_TO_P2' or 'CHAIN_FORWARD_TO_P1'
-    for _, position in ipairs(ScenarioUtils.ChainToPositions(chainName)) do
-        IssueAggressiveMove(units, position)
+    if not (config and config.AttackChain) then
+        local chainName = target == Army.Player2 and 'CHAIN_FORWARD_TO_P2' or 'CHAIN_FORWARD_TO_P1'
+        for _, position in ipairs(ScenarioUtils.ChainToPositions(chainName)) do
+            IssueAggressiveMove(units, position)
+        end
     end
 end
 
@@ -662,6 +1037,9 @@ local function SpawnWaveUnits(config)
     end
 
     SpawnComposition(config.Units)
+    if MissionState.Difficulty >= 2 then
+        SpawnComposition(config.NormalUnits)
+    end
     if MissionState.Difficulty == 3 then
         SpawnComposition(config.HardUnits)
     end
@@ -670,7 +1048,7 @@ local function SpawnWaveUnits(config)
 end
 
 function SpawnAttackWave(configOrName)
-    if MissionState.MissionEnded or MissionState.CurrentPhase ~= 1 then
+    if MissionState.MissionEnded then
         return {}
     end
 
@@ -681,6 +1059,11 @@ function SpawnAttackWave(configOrName)
 
     if not config then
         Log('WARN', 'Unknown wave config: ' .. tostring(configOrName))
+        return {}
+    end
+
+    local requiredPhase = config.Phase or 1
+    if MissionState.CurrentPhase ~= requiredPhase then
         return {}
     end
 
@@ -695,13 +1078,13 @@ function SpawnAttackWave(configOrName)
         return {}
     end
 
-    if MissionState.CommandPostDestroyed and not config.AllowAfterCommand then
+    if requiredPhase == 1 and MissionState.CommandPostDestroyed and not config.AllowAfterCommand then
         DebugLog('WAVE', 'Wave suppressed after Command Post destruction: ' .. name)
         return {}
     end
 
     MissionState.SpawnedWaves[name] = true
-    Log('WAVE', 'Spawn ' .. name)
+    Log(requiredPhase == 2 and 'PHASE2/WAVE' or 'WAVE', 'Spawn ' .. name)
 
     local units = SpawnWaveUnits(config)
     if table.getn(units) == 0 then
@@ -710,12 +1093,15 @@ function SpawnAttackWave(configOrName)
     end
 
     local brain = GetArmyBrain(config.Army)
+    local platoon = nil
     if brain then
-        local platoon = brain:MakePlatoon(name, 'NoPlan')
+        platoon = brain:MakePlatoon(name, 'NoPlan')
         brain:AssignUnitsToPlatoon(platoon, units, 'Attack', config.Air and 'NoFormation' or 'AttackFormation')
     end
 
-    if config.SplitTargets and table.getn(GetAvailableWaveTargets()) >= 2 then
+    if config.PatrolChain and platoon then
+        ScenarioFramework.PlatoonPatrolChain(platoon, config.PatrolChain)
+    elseif config.SplitTargets and table.getn(GetAvailableWaveTargets()) >= 2 then
         local p1Units = {}
         local p2Units = {}
         for index, unit in ipairs(units) do
@@ -728,22 +1114,28 @@ function SpawnAttackWave(configOrName)
 
         if table.getn(p1Units) > 0 then
             Log('WAVE', 'Target Player1')
-            IssueWaveOrders(p1Units, Army.Player1, config.Air)
+            IssueWaveOrders(p1Units, Army.Player1, config.Air, config)
         end
         if table.getn(p2Units) > 0 then
             Log('WAVE', 'Target Player2')
-            IssueWaveOrders(p2Units, Army.Player2, config.Air)
+            IssueWaveOrders(p2Units, Army.Player2, config.Air, config)
         end
     else
         local target = SelectWaveTarget(config.PreferredTarget)
         if target then
             Log('WAVE', 'Target ' .. target)
-            IssueWaveOrders(units, target, config.Air)
+            IssueWaveOrders(units, target, config.Air, config)
+        elseif not config.PatrolChain then
+            IssueWaveOrders(units, nil, config.Air, config)
         end
     end
 
     if config.Reinforcement then
         AppendUnits(MissionState.ReinforcementUnits, units)
+    end
+
+    if requiredPhase == 2 and config.TrackPool and MissionState.Phase2[config.TrackPool] then
+        AppendUnits(MissionState.Phase2[config.TrackPool], units)
     end
 
     return units
@@ -1074,6 +1466,851 @@ local function RegisterForwardDiscoveryTriggers()
     AddThread('ForwardDiscoveryTimeout', ForkThread(ForwardDiscoveryTimeoutThread))
 end
 
+
+local function NewPhase2State()
+    return {
+        Started = false,
+        WestCompleted = false,
+        EastCompleted = false,
+        WestCommandDestroyed = false,
+        EastCommandDestroyed = false,
+        CentralResponseTriggered = false,
+        AdaptiveResponseTriggered = false,
+        FirstCompletedSide = false,
+        WestConvoysDestroyed = 0,
+        WestConvoysArrived = 0,
+        WestReinforcementReduced = false,
+        RadarNetworkDestroyed = false,
+        RadarRewardApplied = false,
+        Finished = false,
+        Phase3Started = false,
+        WestGroups = {},
+        EastGroups = {},
+        RadarUnits = {},
+        WestAttackUnits = {},
+        EastAirUnits = {},
+        ConvoyUnits = {},
+        CentralResponseUnits = {},
+        Convoys = {},
+        ConvoyCounter = 0,
+        AirRaidCounter = 0,
+        PatrolCounter = 0,
+        Limits = {},
+    }
+end
+
+local function WaitWhilePhase2(baseSeconds, side)
+    local remaining = GetScaledDelay(baseSeconds)
+    while remaining > 0 do
+        if MissionState.MissionEnded
+            or MissionState.CurrentPhase ~= 2
+            or MissionState.Phase2.Finished
+        then
+            return false
+        end
+
+        if side == 'West' and MissionState.Phase2.WestCompleted then
+            return false
+        end
+        if side == 'East' and MissionState.Phase2.EastCompleted then
+            return false
+        end
+
+        local slice = math.min(5, remaining)
+        WaitSeconds(slice)
+        remaining = remaining - slice
+    end
+    return true
+end
+
+local function DistanceSquared(a, b)
+    if not a or not b then
+        return 999999999
+    end
+    local dx = a[1] - b[1]
+    local dz = a[3] - b[3]
+    return dx * dx + dz * dz
+end
+
+local function SpawnPhase2Group(groupName)
+    return SpawnEditorGroup(Army.EnemyMain, groupName)
+end
+
+local function ProtectObjectiveStructure(unit, customName)
+    if not IsUnitAlive(unit) then
+        return
+    end
+    unit:SetCapturable(false)
+    unit:SetReclaimable(false)
+    unit:SetCustomName(customName)
+end
+
+local function OnPhase2RadarNetworkDestroyed()
+    local phase = MissionState.Phase2
+    if phase.RadarRewardApplied then
+        return
+    end
+
+    phase.RadarNetworkDestroyed = true
+    phase.RadarRewardApplied = true
+    MarkObjectiveCompleted('Phase2RadarNetwork')
+    SetObjectiveManualResultIfActive(MissionState.Objectives.Phase2RadarNetwork, true)
+    Log('EAST', 'Radar network destroyed; air raid cadence and patrol coverage reduced')
+
+    if phase.Started and not MissionState.MissionEnded then
+        ScenarioFramework.Dialogue(Dialogues.Phase2RadarDestroyed)
+    end
+end
+
+local function OnPhase2WestCommandDestroyed()
+    local phase = MissionState.Phase2
+    phase.WestCommandDestroyed = true
+    if phase.Started then
+        CompleteWestObjective()
+    else
+        Log('OBJECTIVE', 'West objective structure destroyed before Phase 2 activation')
+    end
+end
+
+local function OnPhase2EastCommandDestroyed()
+    local phase = MissionState.Phase2
+    phase.EastCommandDestroyed = true
+    if phase.Started then
+        CompleteEastObjective()
+    else
+        Log('OBJECTIVE', 'East objective structure destroyed before Phase 2 activation')
+    end
+end
+
+local function SetupPhase2Garrison(units, platoonName, patrolChain)
+    if not units or table.getn(units) == 0 then
+        return
+    end
+    local brain = GetArmyBrain(Army.EnemyMain)
+    if not brain then
+        return
+    end
+    local platoon = brain:MakePlatoon(platoonName, 'NoPlan')
+    brain:AssignUnitsToPlatoon(platoon, units, 'Attack', 'AttackFormation')
+    ScenarioFramework.PlatoonPatrolChain(platoon, patrolChain)
+end
+
+local function InitializePhase2EnemyForces()
+    local phase = MissionState.Phase2
+
+    phase.WestGroups.Production = SpawnPhase2Group('WEST_PRODUCTION_BASE')
+    if MissionState.Difficulty >= 2 then
+        AppendUnits(phase.WestGroups.Production, SpawnPhase2Group('WEST_PRODUCTION_NORMAL'))
+    end
+    if MissionState.Difficulty == 3 then
+        AppendUnits(phase.WestGroups.Production, SpawnPhase2Group('WEST_PRODUCTION_HARD'))
+    end
+    phase.WestGroups.Economy = SpawnPhase2Group('WEST_ECONOMY')
+    phase.WestGroups.Defense = SpawnPhase2Group('WEST_DEFENSE_BASE')
+    if MissionState.Difficulty >= 2 then
+        AppendUnits(phase.WestGroups.Defense, SpawnPhase2Group('WEST_DEFENSE_NORMAL'))
+    end
+    if MissionState.Difficulty == 3 then
+        AppendUnits(phase.WestGroups.Defense, SpawnPhase2Group('WEST_DEFENSE_HARD'))
+    end
+    phase.WestGroups.Engineers = SpawnPhase2Group('WEST_ENGINEERS')
+    phase.WestGroups.Garrison = SpawnPhase2Group('WEST_GARRISON')
+
+    phase.EastGroups.Production = SpawnPhase2Group('EAST_PRODUCTION_BASE')
+    if MissionState.Difficulty >= 2 then
+        AppendUnits(phase.EastGroups.Production, SpawnPhase2Group('EAST_PRODUCTION_NORMAL'))
+    end
+    if MissionState.Difficulty == 3 then
+        AppendUnits(phase.EastGroups.Production, SpawnPhase2Group('EAST_PRODUCTION_HARD'))
+    end
+    phase.EastGroups.Economy = SpawnPhase2Group('EAST_ECONOMY')
+    phase.EastGroups.Defense = SpawnPhase2Group('EAST_DEFENSE_BASE')
+    if MissionState.Difficulty >= 2 then
+        AppendUnits(phase.EastGroups.Defense, SpawnPhase2Group('EAST_DEFENSE_NORMAL'))
+    end
+    if MissionState.Difficulty == 3 then
+        AppendUnits(phase.EastGroups.Defense, SpawnPhase2Group('EAST_DEFENSE_HARD'))
+    end
+    phase.EastGroups.Engineers = SpawnPhase2Group('EAST_ENGINEERS')
+    phase.EastGroups.Garrison = SpawnPhase2Group('EAST_GARRISON')
+
+    phase.WestGroups.Command = SpawnPhase2Group('WEST_COMMAND')
+    phase.EastGroups.Command = SpawnPhase2Group('EAST_COMMAND')
+    phase.RadarUnits = SpawnPhase2Group('EAST_RADAR_NETWORK')
+
+    MissionState.Targets.WestLogisticsCommand = GetNamedArmyUnit(Army.EnemyMain, 'West_Logistics_Command')
+    MissionState.Targets.EastAirControlCommand = GetNamedArmyUnit(Army.EnemyMain, 'East_Air_Control_Command')
+
+    local westCommand = MissionState.Targets.WestLogisticsCommand
+    local eastCommand = MissionState.Targets.EastAirControlCommand
+    if not IsUnitAlive(westCommand) or not IsUnitAlive(eastCommand) then
+        Log('FAIL', 'Phase 2 objective structure creation failed')
+        return false
+    end
+
+    ProtectObjectiveStructure(westCommand, 'Western Logistics Command')
+    ProtectObjectiveStructure(eastCommand, 'Eastern Air Control Command')
+
+    ScenarioFramework.CreateUnitDeathTrigger(OnPhase2WestCommandDestroyed, westCommand)
+    ScenarioFramework.CreateUnitDeathTrigger(OnPhase2EastCommandDestroyed, eastCommand)
+
+    if phase.RadarUnits and table.getn(phase.RadarUnits) > 0 then
+        for _, radar in ipairs(phase.RadarUnits) do
+            if IsUnitAlive(radar) then
+                radar:SetCapturable(false)
+                radar:SetReclaimable(false)
+            end
+        end
+        ScenarioFramework.CreateGroupDeathTrigger(
+            OnPhase2RadarNetworkDestroyed,
+            phase.RadarUnits,
+            'OTS_PHASE2_RADAR_NETWORK_DESTROYED'
+        )
+    end
+
+    SetupPhase2Garrison(phase.WestGroups.Garrison, 'OTS_West_Garrison', 'CHAIN_WEST_BASE_PATROL')
+    SetupPhase2Garrison(phase.EastGroups.Garrison, 'OTS_East_Garrison', 'CHAIN_EAST_BASE_PATROL')
+
+    Log('WEST', 'Logistics Base active')
+    Log('EAST', 'Air Control Base active')
+    return true
+end
+
+local function GetConvoyObjectiveThreshold()
+    if MissionState.Difficulty == 3 then
+        return 3
+    end
+    return 2
+end
+
+local function CompleteConvoySecondaryIfReady()
+    local phase = MissionState.Phase2
+    if phase.WestReinforcementReduced then
+        return
+    end
+    if phase.WestConvoysDestroyed < GetConvoyObjectiveThreshold() then
+        return
+    end
+
+    phase.WestReinforcementReduced = true
+    MarkObjectiveCompleted('Phase2Convoys')
+    SetObjectiveManualResultIfActive(MissionState.Objectives.Phase2Convoys, true)
+    Log('CONVOY', 'Convoy objective complete; Western reinforcement cadence reduced')
+    ScenarioFramework.Dialogue(Dialogues.Phase2ConvoysBroken)
+end
+
+local function HandleWestConvoyDestroyed(convoyId)
+    local phase = MissionState.Phase2
+    local convoy = phase.Convoys[convoyId]
+    if not convoy or convoy.Resolved or phase.Finished then
+        return
+    end
+
+    convoy.Resolved = true
+    convoy.Destroyed = true
+    phase.WestConvoysDestroyed = phase.WestConvoysDestroyed + 1
+    Log('CONVOY', string.format('West convoy %d destroyed (%d total)', convoyId, phase.WestConvoysDestroyed))
+    CompleteConvoySecondaryIfReady()
+end
+
+local function ApplyWestConvoyBonus(convoyId)
+    local phase = MissionState.Phase2
+    local convoy = phase.Convoys[convoyId]
+    if not convoy or convoy.Resolved or phase.WestCompleted or phase.Finished then
+        return
+    end
+
+    convoy.Resolved = true
+    convoy.Arrived = true
+    phase.WestConvoysArrived = phase.WestConvoysArrived + 1
+    Log('CONVOY', string.format('West convoy %d reached Logistics Base', convoyId))
+
+    if phase.WestReinforcementReduced then
+        Log('CONVOY', 'Arrival bonus suppressed by destroyed logistics convoys')
+        return
+    end
+
+    local defenders = SpawnWaveUnits({
+        Army = Army.EnemyMain,
+        SpawnMarker = 'WEST_BASE_CENTER',
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.AssaultBot, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.MobileAA, Count = 1},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 1},
+        },
+    })
+    AppendUnits(phase.WestAttackUnits, defenders)
+    SetupPhase2Garrison(defenders, 'OTS_West_Convoy_Defense_' .. tostring(convoyId), 'CHAIN_WEST_BASE_PATROL')
+end
+
+local function MonitorWestConvoy(convoyId)
+    local phase = MissionState.Phase2
+    local convoy = phase.Convoys[convoyId]
+    local exitPosition = GetMarkerPosition('WEST_SUPPLY_EXIT')
+    if not convoy or not exitPosition then
+        return
+    end
+
+    while not MissionState.MissionEnded
+        and MissionState.CurrentPhase == 2
+        and not phase.Finished
+        and not phase.WestCompleted
+        and not convoy.Resolved
+    do
+        WaitSeconds(DEBUG and 1 or 4)
+        for _, unit in ipairs(convoy.Units) do
+            if IsUnitAlive(unit) and DistanceSquared(unit:GetPosition(), exitPosition) <= 225 then
+                ApplyWestConvoyBonus(convoyId)
+                return
+            end
+        end
+    end
+end
+
+local function RefreshActiveConvoyUnits()
+    local phase = MissionState.Phase2
+    local active = {}
+    for _, convoy in pairs(phase.Convoys) do
+        if not convoy.Resolved then
+            AppendUnits(active, PruneLivingUnits(convoy.Units))
+        end
+    end
+    phase.ConvoyUnits = active
+    return active
+end
+
+function SpawnWestConvoy()
+    local phase = MissionState.Phase2
+    if MissionState.MissionEnded
+        or MissionState.CurrentPhase ~= 2
+        or phase.WestCompleted
+        or phase.Finished
+    then
+        return {}
+    end
+
+    RefreshActiveConvoyUnits()
+    if table.getn(phase.ConvoyUnits) >= phase.Limits.MaxActiveConvoyUnits then
+        DebugLog('CONVOY', 'Active convoy cap reached')
+        return {}
+    end
+
+    phase.ConvoyCounter = phase.ConvoyCounter + 1
+    local convoyId = phase.ConvoyCounter
+    local units = SpawnWaveUnits({
+        Army = Army.EnemyMain,
+        SpawnMarker = 'WEST_SUPPLY_ENTRY',
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.Engineer, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.AssaultBot, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.MobileAA, Count = 1},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.AssaultBot, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.MobileAAT2, Count = 1},
+        },
+    })
+
+    if table.getn(units) == 0 then
+        return units
+    end
+
+    phase.Convoys[convoyId] = {
+        Units = units,
+        Resolved = false,
+        Destroyed = false,
+        Arrived = false,
+    }
+    AppendUnits(phase.ConvoyUnits, units)
+
+    local brain = GetArmyBrain(Army.EnemyMain)
+    if brain then
+        local platoon = brain:MakePlatoon('OTS_West_Convoy_' .. tostring(convoyId), 'NoPlan')
+        brain:AssignUnitsToPlatoon(platoon, units, 'Attack', 'AttackFormation')
+    end
+
+    for _, position in ipairs(ScenarioUtils.ChainToPositions('CHAIN_WEST_SUPPLY')) do
+        IssueMove(units, position)
+    end
+
+    ScenarioFramework.CreateGroupDeathTrigger(
+        function()
+            HandleWestConvoyDestroyed(convoyId)
+        end,
+        units,
+        'OTS_WEST_CONVOY_' .. tostring(convoyId) .. '_DESTROYED'
+    )
+    AddThread('WestConvoyMonitor_' .. tostring(convoyId), ForkThread(MonitorWestConvoy, convoyId))
+    Log('CONVOY', 'West convoy spawned')
+    return units
+end
+
+function SpawnEastAirRaid(raidName)
+    local phase = MissionState.Phase2
+    if MissionState.MissionEnded
+        or MissionState.CurrentPhase ~= 2
+        or phase.EastCompleted
+        or phase.Finished
+    then
+        return {}
+    end
+
+    phase.EastAirUnits = PruneLivingUnits(phase.EastAirUnits)
+    if table.getn(phase.EastAirUnits) >= phase.Limits.MaxActiveEastAirUnits then
+        DebugLog('AIR', 'Active East air cap reached')
+        return {}
+    end
+
+    local base = WaveDefinitions[raidName or 'BOMBER_STRIKE']
+    if not base then
+        Log('WARN', 'Unknown East air raid: ' .. tostring(raidName))
+        return {}
+    end
+
+    phase.AirRaidCounter = phase.AirRaidCounter + 1
+    local config = {}
+    for key, value in pairs(base) do
+        config[key] = value
+    end
+    config.Name = (base.Name or raidName or 'AIR_RAID') .. '_' .. tostring(phase.AirRaidCounter)
+    config.AllowRepeat = true
+
+    local units = SpawnAttackWave(config)
+    if table.getn(units) > 0 then
+        Log('AIR', (base.Name or tostring(raidName)) .. ' launched')
+    end
+    return units
+end
+
+local function SpawnEastPatrol(routeName)
+    local phase = MissionState.Phase2
+    phase.EastAirUnits = PruneLivingUnits(phase.EastAirUnits)
+    if table.getn(phase.EastAirUnits) >= phase.Limits.MaxActiveEastAirUnits then
+        return {}
+    end
+
+    phase.PatrolCounter = phase.PatrolCounter + 1
+    local base = WaveDefinitions.INTERCEPTOR_PATROL
+    local config = {}
+    for key, value in pairs(base) do
+        config[key] = value
+    end
+    config.Name = 'INTERCEPTOR_PATROL_' .. tostring(phase.PatrolCounter)
+    config.PatrolChain = routeName
+    config.AllowRepeat = true
+    return SpawnAttackWave(config)
+end
+
+local function WestAttackThread()
+    if not WaitWhilePhase2(75, 'West') then
+        return
+    end
+
+    local sequence = {'WEST_WAVE_LIGHT', 'WEST_WAVE_MECH', 'WEST_WAVE_ARTILLERY'}
+    local index = 1
+    local cycle = 0
+
+    while not MissionState.Phase2.WestCompleted and not MissionState.Phase2.Finished do
+        local phase = MissionState.Phase2
+        phase.WestAttackUnits = PruneLivingUnits(phase.WestAttackUnits)
+        cycle = cycle + 1
+
+        local skipForLogistics = phase.WestReinforcementReduced and math.mod(cycle, 2) == 0
+        if not skipForLogistics
+            and table.getn(phase.WestAttackUnits) < phase.Limits.MaxActiveWestAttackUnits
+        then
+            SpawnAttackWave(sequence[index])
+            index = index + 1
+            if index > table.getn(sequence) then
+                index = 1
+            end
+        end
+
+        local delay = phase.WestReinforcementReduced and 165 or 120
+        if not WaitWhilePhase2(delay, 'West') then
+            return
+        end
+    end
+end
+
+local function WestConvoyThread()
+    if not WaitWhilePhase2(100, 'West') then
+        return
+    end
+
+    while not MissionState.Phase2.WestCompleted and not MissionState.Phase2.Finished do
+        SpawnWestConvoy()
+        local delay = MissionState.Phase2.WestReinforcementReduced and 260 or 190
+        if not WaitWhilePhase2(delay, 'West') then
+            return
+        end
+    end
+end
+
+local function EastAirAttackThread()
+    if not WaitWhilePhase2(80, 'East') then
+        return
+    end
+
+    local sequence = {'AIR_SCOUT', 'BOMBER_STRIKE'}
+    if MissionState.Difficulty >= 2 then
+        sequence = {'AIR_SCOUT', 'BOMBER_STRIKE', 'GUNSHIP_RAID', 'MIXED_AIR_ATTACK'}
+    end
+    if MissionState.Difficulty == 3 then
+        sequence = {'BOMBER_STRIKE', 'GUNSHIP_RAID', 'MIXED_AIR_ATTACK', 'BOMBER_STRIKE', 'MIXED_AIR_ATTACK'}
+    end
+
+    local index = 1
+    while not MissionState.Phase2.EastCompleted and not MissionState.Phase2.Finished do
+        SpawnEastAirRaid(sequence[index])
+        index = index + 1
+        if index > table.getn(sequence) then
+            index = 1
+        end
+
+        local delay = 125
+        if MissionState.Difficulty == 1 then
+            delay = 165
+        elseif MissionState.Difficulty == 3 then
+            delay = 100
+        end
+        if MissionState.Phase2.RadarNetworkDestroyed then
+            delay = delay * 1.45
+        end
+
+        if not WaitWhilePhase2(delay, 'East') then
+            return
+        end
+    end
+end
+
+local function EastPatrolThread()
+    if not WaitWhilePhase2(45, 'East') then
+        return
+    end
+
+    local index = 1
+    local fullRoutes = {
+        'CHAIN_EAST_AIR_PATROL_01',
+        'CHAIN_EAST_AIR_PATROL_02',
+        'CHAIN_CENTER_AIR_PATROL',
+    }
+
+    while not MissionState.Phase2.EastCompleted and not MissionState.Phase2.Finished do
+        local route = fullRoutes[index]
+        if MissionState.Phase2.RadarNetworkDestroyed then
+            route = 'CHAIN_EAST_AIR_PATROL_01'
+        end
+        SpawnEastPatrol(route)
+
+        index = index + 1
+        if index > table.getn(fullRoutes) then
+            index = 1
+        end
+
+        local delay = MissionState.Phase2.RadarNetworkDestroyed and 220 or 150
+        if not WaitWhilePhase2(delay, 'East') then
+            return
+        end
+    end
+end
+
+local function FindRepairTarget(groups)
+    for _, group in ipairs(groups) do
+        for _, unit in ipairs(group or {}) do
+            if IsUnitAlive(unit)
+                and unit.GetHealth
+                and unit.GetMaxHealth
+                and unit:GetHealth() < unit:GetMaxHealth()
+            then
+                return unit
+            end
+        end
+    end
+    return nil
+end
+
+local function Phase2EngineerSupportThread(side)
+    local phase = MissionState.Phase2
+    local isWest = side == 'West'
+    local groups = isWest and phase.WestGroups or phase.EastGroups
+    local patrolChain = isWest and 'CHAIN_WEST_BASE_PATROL' or 'CHAIN_EAST_BASE_PATROL'
+
+    while not phase.Finished
+        and ((isWest and not phase.WestCompleted) or ((not isWest) and not phase.EastCompleted))
+    do
+        if not WaitWhilePhase2(55, side) then
+            return
+        end
+
+        groups.Engineers = PruneLivingUnits(groups.Engineers)
+        local engineer = groups.Engineers[1]
+        if IsUnitAlive(engineer) then
+            local repairTarget = FindRepairTarget({groups.Production, groups.Defense, groups.Economy})
+            IssueClearCommands({engineer})
+            if repairTarget then
+                IssueRepair({engineer}, repairTarget)
+            else
+                for _, position in ipairs(ScenarioUtils.ChainToPositions(patrolChain)) do
+                    IssuePatrol({engineer}, position)
+                end
+            end
+        end
+    end
+end
+
+local function ApplyAdaptiveReinforcement(completedSide)
+    local phase = MissionState.Phase2
+    if phase.AdaptiveResponseTriggered or phase.Finished then
+        return
+    end
+
+    phase.AdaptiveResponseTriggered = true
+    if completedSide == 'West' and not phase.EastCompleted then
+        Log('RESPONSE', 'East sector receives moderate adaptive reinforcement')
+        SpawnAttackWave('EAST_ADAPTIVE_REINFORCEMENT')
+        if MissionState.Difficulty == 3 then
+            SpawnEastAirRaid('MIXED_AIR_ATTACK')
+        end
+    elseif completedSide == 'East' and not phase.WestCompleted then
+        Log('RESPONSE', 'West sector receives moderate adaptive reinforcement')
+        SpawnAttackWave('WEST_ADAPTIVE_REINFORCEMENT')
+        if MissionState.Difficulty == 3 then
+            SpawnAttackWave('WEST_WAVE_MECH')
+        end
+    end
+end
+
+function TriggerCentralResponse()
+    local phase = MissionState.Phase2
+    if MissionState.MissionEnded
+        or MissionState.CurrentPhase ~= 2
+        or phase.CentralResponseTriggered
+        or phase.Finished
+    then
+        return
+    end
+
+    phase.CentralResponseTriggered = true
+    Log('RESPONSE', 'Central response triggered')
+    ScenarioFramework.Dialogue(Dialogues.Phase2CentralResponse)
+
+    phase.CentralResponseUnits = PruneLivingUnits(phase.CentralResponseUnits)
+    if table.getn(phase.CentralResponseUnits) < phase.Limits.MaxActiveCentralResponseUnits then
+        SpawnAttackWave('CENTRAL_RESPONSE_MAIN')
+        if MissionState.Difficulty == 3 and MissionState.ActivePlayers >= 2 then
+            SpawnAttackWave('CENTRAL_RESPONSE_FLANK')
+        end
+    end
+end
+
+function CheckPhase2Completion()
+    local phase = MissionState.Phase2
+    if phase.Finished then
+        return
+    end
+    if phase.WestCompleted and phase.EastCompleted then
+        CompletePhase2()
+    end
+end
+
+function CompleteWestObjective()
+    local phase = MissionState.Phase2
+    if phase.WestCompleted or phase.Finished then
+        return
+    end
+
+    phase.WestCompleted = true
+    phase.WestCommandDestroyed = true
+    MarkObjectiveCompleted('Phase2West')
+    SetObjectiveManualResultIfActive(MissionState.Objectives.Phase2West, true)
+    Log('OBJECTIVE', 'West completed')
+    ScenarioFramework.Dialogue(Dialogues.Phase2WestDestroyed)
+
+    if not phase.FirstCompletedSide then
+        phase.FirstCompletedSide = 'West'
+        TriggerCentralResponse()
+        ApplyAdaptiveReinforcement('West')
+    end
+
+    CheckPhase2Completion()
+end
+
+function CompleteEastObjective()
+    local phase = MissionState.Phase2
+    if phase.EastCompleted or phase.Finished then
+        return
+    end
+
+    phase.EastCompleted = true
+    phase.EastCommandDestroyed = true
+    MarkObjectiveCompleted('Phase2East')
+    SetObjectiveManualResultIfActive(MissionState.Objectives.Phase2East, true)
+    Log('OBJECTIVE', 'East completed')
+    ScenarioFramework.Dialogue(Dialogues.Phase2EastDestroyed)
+
+    if not phase.FirstCompletedSide then
+        phase.FirstCompletedSide = 'East'
+        TriggerCentralResponse()
+        ApplyAdaptiveReinforcement('East')
+    end
+
+    CheckPhase2Completion()
+end
+
+local function CreatePhase2Objectives()
+    local phase = MissionState.Phase2
+    local westCommand = MissionState.Targets.WestLogisticsCommand
+    local eastCommand = MissionState.Targets.EastAirControlCommand
+
+    if not westCommand or not eastCommand then
+        MissionFailure('Phase 2 objective structures missing')
+        return false
+    end
+
+    local westAlreadyDestroyed = phase.WestCommandDestroyed or not IsUnitAlive(westCommand)
+    local eastAlreadyDestroyed = phase.EastCommandDestroyed or not IsUnitAlive(eastCommand)
+
+    MissionState.Objectives.Phase2West = Objectives.Kill(
+        'primary',
+        westAlreadyDestroyed and 'complete' or 'incomplete',
+        'Destroy Western Logistics Base',
+        'Destroy the Cybran logistics hub supplying the northern defenses.',
+        {
+            Units = {westCommand},
+            MarkUnits = true,
+            AlwaysVisible = true,
+            ShowFaction = 'Cybran',
+        }
+    )
+
+    MissionState.Objectives.Phase2East = Objectives.Kill(
+        'primary',
+        eastAlreadyDestroyed and 'complete' or 'incomplete',
+        'Destroy Eastern Air Control Base',
+        'Eliminate the Cybran air-control installation supporting enemy operations in the sector.',
+        {
+            Units = {eastCommand},
+            MarkUnits = true,
+            AlwaysVisible = true,
+            ShowFaction = 'Cybran',
+        }
+    )
+
+    MissionState.Objectives.Phase2West:AddResultCallback(
+        function(success)
+            if MissionState.MissionEnded then return end
+            if success then
+                CompleteWestObjective()
+            else
+                MissionFailure('Western Logistics Base objective failed')
+            end
+        end
+    )
+    MissionState.Objectives.Phase2East:AddResultCallback(
+        function(success)
+            if MissionState.MissionEnded then return end
+            if success then
+                CompleteEastObjective()
+            else
+                MissionFailure('Eastern Air Control Base objective failed')
+            end
+        end
+    )
+
+    MissionState.Objectives.Phase2Convoys = Objectives.Unknown(
+        'secondary',
+        phase.WestReinforcementReduced and 'complete' or 'incomplete',
+        'Intercept Cybran Supply Convoys',
+        'Destroy multiple Cybran supply convoys before they reinforce the Western Logistics Base.'
+    )
+
+    local radarsAlive = {}
+    for _, radar in ipairs(phase.RadarUnits or {}) do
+        if IsUnitAlive(radar) then
+            table.insert(radarsAlive, radar)
+        end
+    end
+    local radarAlreadyDestroyed = phase.RadarNetworkDestroyed or table.getn(radarsAlive) == 0
+    MissionState.Objectives.Phase2RadarNetwork = Objectives.Kill(
+        'secondary',
+        radarAlreadyDestroyed and 'complete' or 'incomplete',
+        'Destroy Cybran Radar Network',
+        'Destroy the Cybran radar network to reduce air-raid frequency and patrol coverage.',
+        {
+            Units = radarAlreadyDestroyed and (phase.RadarUnits or {}) or radarsAlive,
+            MarkUnits = true,
+            AlwaysVisible = true,
+            ShowFaction = 'Cybran',
+        }
+    )
+    if not radarAlreadyDestroyed then
+        MissionState.Objectives.Phase2RadarNetwork:AddResultCallback(
+            function(success)
+                if success then
+                    OnPhase2RadarNetworkDestroyed()
+                end
+            end
+        )
+    else
+        OnPhase2RadarNetworkDestroyed()
+    end
+
+    if westAlreadyDestroyed then
+        CompleteWestObjective()
+    end
+    if eastAlreadyDestroyed then
+        CompleteEastObjective()
+    end
+    CompleteConvoySecondaryIfReady()
+    return true
+end
+
+function CompletePhase2()
+    local phase = MissionState.Phase2
+    if MissionState.MissionEnded or phase.Finished then
+        return
+    end
+    if not phase.WestCompleted or not phase.EastCompleted then
+        DebugLog('PHASE2', 'Completion ignored until both sectors are neutralized')
+        return
+    end
+
+    phase.Finished = true
+    MarkObjectiveCompleted('Phase2')
+    Log('PHASE2', 'Both sectors neutralized')
+    ScenarioFramework.Dialogue(Dialogues.Phase2Complete)
+
+    ScenarioFramework.SetPlayableArea('AREA_PHASE_3', true)
+    Log('MAP', 'Expanding to AREA_PHASE_3')
+
+    MissionState.CurrentPhase = 3
+    StartPhase3()
+end
+
+function StartPhase3()
+    local phase = MissionState.Phase2
+    if MissionState.MissionEnded or phase.Phase3Started then
+        return
+    end
+
+    phase.Phase3Started = true
+    Log('PHASE3', 'Placeholder started')
+    ScenarioFramework.Dialogue(Dialogues.Phase3)
+
+    MissionState.Objectives.Phase3Placeholder = Objectives.Unknown(
+        'primary',
+        'incomplete',
+        'Recon the Northern Cybran Complex',
+        'Advance into the newly opened northern sector and prepare the assault on the main complex.'
+    )
+end
+
 function InitializeMissionState()
     MissionState.CurrentPhase = 0
     MissionState.ActivePlayers = GetActivePlayerCount()
@@ -1111,6 +2348,8 @@ function InitializeMissionState()
     MissionState.CounterattackUnits = {}
     MissionState.CounterattackInitialCount = 0
     MissionState.Phase1Completed = false
+    MissionState.Phase2 = NewPhase2State()
+    MissionState.Phase2.Limits = GetPhase2Limits()
 
     ScenarioInfo.OperationTwinSpear = MissionState
 
@@ -1241,6 +2480,11 @@ function InitializeEnemyArmies()
     end
 
     Log('INIT', 'Forward Cybran Outpost initialized from save.lua groups')
+
+    if not InitializePhase2EnemyForces() then
+        return false
+    end
+
     return true
 end
 
@@ -1298,20 +2542,37 @@ function CompletePhase1()
 end
 
 function StartPhase2()
-    if MissionState.MissionEnded or MissionState.CurrentPhase >= 2 then
+    local phase = MissionState.Phase2
+    if MissionState.MissionEnded
+        or phase.Started
+        or MissionState.CurrentPhase > 2
+    then
         return
     end
 
     MissionState.CurrentPhase = 2
-    Log('PHASE2', 'Placeholder started')
+    phase.Started = true
+    Log('PHASE2', 'Starting')
     ScenarioFramework.Dialogue(Dialogues.Phase2)
 
-    MissionState.Objectives.Phase2Placeholder = Objectives.Unknown(
-        'primary',
-        'incomplete',
-        'Investigate the Northern Cybran Network',
-        'Advance into the newly opened sector and await updated intelligence.'
-    )
+    if not CreatePhase2Objectives() or MissionState.MissionEnded then
+        return
+    end
+    if phase.Finished then
+        return
+    end
+
+    if not phase.WestCompleted then
+        AddThread('Phase2WestAttack', ForkThread(WestAttackThread))
+        AddThread('Phase2WestConvoys', ForkThread(WestConvoyThread))
+        AddThread('Phase2WestEngineers', ForkThread(Phase2EngineerSupportThread, 'West'))
+    end
+
+    if not phase.EastCompleted then
+        AddThread('Phase2EastAir', ForkThread(EastAirAttackThread))
+        AddThread('Phase2EastPatrols', ForkThread(EastPatrolThread))
+        AddThread('Phase2EastEngineers', ForkThread(Phase2EngineerSupportThread, 'East'))
+    end
 end
 
 function MissionVictory()
@@ -1343,6 +2604,16 @@ function StartMission()
 
     MissionState.MissionStarted = true
     Log('PHASE', 'Mission flow started')
+
+    if DEBUG and DEBUG_OPTIONS.StartPhase2Immediately then
+        MissionState.CommandPostDestroyed = true
+        MissionState.CounterattackStarted = true
+        MissionState.CounterattackResolved = true
+        MissionState.Phase1Completed = true
+        ScenarioFramework.SetPlayableArea('AREA_PHASE_2', false)
+        StartPhase2()
+        return
+    end
 
     if DEBUG and DEBUG_OPTIONS.StartPhase1Immediately then
         StartPhase1()
@@ -1393,6 +2664,50 @@ local function InitializeDebugControls()
             MissionState.CounterattackStarted = true
             MissionState.CounterattackResolved = true
             CompletePhase1()
+        end,
+
+        StartPhase2 = function()
+            if MissionState.CurrentPhase < 2 then
+                MissionState.Phase1Completed = true
+                MissionState.CurrentPhase = 1
+            end
+            StartPhase2()
+        end,
+
+        CompleteWestObjective = function()
+            local target = MissionState.Targets.WestLogisticsCommand
+            if IsUnitAlive(target) then
+                target:Kill()
+            else
+                CompleteWestObjective()
+            end
+        end,
+
+        CompleteEastObjective = function()
+            local target = MissionState.Targets.EastAirControlCommand
+            if IsUnitAlive(target) then
+                target:Kill()
+            else
+                CompleteEastObjective()
+            end
+        end,
+
+        TriggerCentralResponse = function()
+            TriggerCentralResponse()
+        end,
+
+        SpawnWestConvoy = function()
+            return SpawnWestConvoy()
+        end,
+
+        SpawnEastAirRaid = function(name)
+            return SpawnEastAirRaid(name or 'BOMBER_STRIKE')
+        end,
+
+        CompletePhase2 = function()
+            CompleteWestObjective()
+            CompleteEastObjective()
+            CompletePhase2()
         end,
     }
 
