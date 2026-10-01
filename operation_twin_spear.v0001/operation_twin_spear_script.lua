@@ -769,10 +769,15 @@ local function ClearPhase2ThreadHandles(side)
         MissionState.Threads.Phase2WestAttack = nil
         MissionState.Threads.Phase2WestConvoys = nil
         MissionState.Threads.Phase2WestEngineers = nil
+
+        local convoyThreadNames = {}
         for name, _ in pairs(MissionState.Threads) do
             if string.sub(name, 1, 18) == 'WestConvoyMonitor_' then
-                MissionState.Threads[name] = nil
+                table.insert(convoyThreadNames, name)
             end
+        end
+        for _, name in ipairs(convoyThreadNames) do
+            MissionState.Threads[name] = nil
         end
     end
 
@@ -780,6 +785,16 @@ local function ClearPhase2ThreadHandles(side)
         MissionState.Threads.Phase2EastAir = nil
         MissionState.Threads.Phase2EastPatrols = nil
         MissionState.Threads.Phase2EastEngineers = nil
+    end
+end
+
+local function ClosePhase2SecondaryObjectives()
+    local phase = MissionState.Phase2
+    if not phase.WestReinforcementReduced then
+        SetObjectiveManualResultIfActive(MissionState.Objectives.Phase2Convoys, false)
+    end
+    if not phase.RadarNetworkDestroyed then
+        SetObjectiveManualResultIfActive(MissionState.Objectives.Phase2RadarNetwork, false)
     end
 end
 
@@ -2509,6 +2524,7 @@ function CompletePhase2()
     end
 
     phase.Finished = true
+    ClosePhase2SecondaryObjectives()
     ClearPhase2ThreadHandles()
     MarkObjectiveCompleted('Phase2')
     Log('PHASE2', 'Both sectors neutralized')
