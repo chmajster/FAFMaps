@@ -705,7 +705,7 @@ local function GetPhase2Limits()
     local byDifficulty = {
         [1] = {West = 12, East = 6, Convoy = 6, Central = 12},
         [2] = {West = 16, East = 12, Convoy = 10, Central = 18},
-        [3] = {West = 22, East = 18, Convoy = 16, Central = 32},
+        [3] = {West = 22, East = 18, Convoy = 16, Central = 44},
     }
     local selected = byDifficulty[MissionState.Difficulty] or byDifficulty[2]
     local coop = MissionState.ActivePlayers >= 2
