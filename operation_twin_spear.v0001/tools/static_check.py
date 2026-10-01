@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Stage 1 static checks for Operation Twin Spear.
 
-This deliberately avoids pretending to validate the binary .scmap. If `luac` is
+This deliberately avoids pretending to validate the binary .scmap. If \`luac\` is
 available it is used for syntax parsing; otherwise deterministic structural
 checks still validate the mission contract and Lua delimiter balance.
 """
@@ -68,10 +68,10 @@ def ok(message: str) -> None:
 
 
 def strip_strings_and_comments(source: str) -> str:
-    source = re.sub(r"--\\[\\[.*?\\]\\]", "", source, flags=re.S)
-    source = re.sub(r"--[^\\n]*", "", source)
-    source = re.sub(r"'(?:\\\\.|[^'\\\\])*'", "''", source)
-    source = re.sub(r'"(?:\\\\.|[^"\\\\])*"', '""', source)
+    source = re.sub(r"--\[\[.*?\]\]", "", source, flags=re.S)
+    source = re.sub(r"--[^\n]*", "", source)
+    source = re.sub(r"'(?:\\.|[^'\\])*'", "''", source)
+    source = re.sub(r'"(?:\\.|[^"\\])*"', '""', source)
     return source
 
 
@@ -122,7 +122,7 @@ def main() -> int:
     ok("campaign_coop scenario with two UEF player slots")
 
     for army in ("Player1", "Player2", "CybranMain", "CybranOutpost", "Neutral"):
-        if re.search(rf"\\b{re.escape(army)}\\s*=\\s*EmptyArmy", save) is None:
+        if re.search(rf"\b{re.escape(army)}\s*=\s*EmptyArmy", save) is None:
             fail(f"save.lua missing army: {army}")
     ok("all Stage 1 armies declared")
 
@@ -132,7 +132,7 @@ def main() -> int:
     ok(f"required marker set present ({len(REQUIRED_MARKERS)})")
 
     for function in REQUIRED_FUNCTIONS:
-        if re.search(rf"function\\s+{re.escape(function)}\\s*\\(", script) is None:
+        if re.search(rf"function\s+{re.escape(function)}\s*\(", script) is None:
             fail(f"mission function missing: {function}")
     ok("mission lifecycle/scaling functions present")
 
