@@ -438,10 +438,26 @@ local function AlignUnitsToTerrain(units)
 end
 
 local function SpawnEditorGroup(armyName, groupName)
-    local units, unitTree = ScenarioUtils.CreateArmyGroup(armyName, groupName)
+    local units = ScenarioUtils.CreateArmyGroup(armyName, groupName)
     AlignUnitsToTerrain(units)
     DebugLog('GROUP', string.format('Spawned %s (%d units)', groupName, table.getn(units)))
-    return units, unitTree
+    return units
+end
+
+local function GetNamedArmyUnit(armyName, unitName)
+    local brain = GetArmyBrain(armyName)
+    if not brain then
+        Log('FAIL', 'Army brain unavailable while resolving named unit: ' .. tostring(armyName))
+        return nil
+    end
+
+    local armyIndex = brain:GetArmyIndex()
+    local unitNames = ScenarioInfo.UnitNames and ScenarioInfo.UnitNames[armyIndex]
+    local unit = unitNames and unitNames[unitName]
+    if not unit then
+        Log('FAIL', string.format('Named unit missing: %s/%s', tostring(armyName), tostring(unitName)))
+    end
+    return unit
 end
 
 local function AddThread(name, thread)
@@ -1174,13 +1190,13 @@ function InitializeEnemyArmies()
         AppendUnits(MissionState.ForwardGroups.Defense, SpawnEditorGroup(Army.EnemyOutpost, 'FORWARD_DEFENSE_HARD'))
     end
 
-    local commandUnits, commandTree = SpawnEditorGroup(Army.EnemyOutpost, 'FORWARD_COMMAND')
+    local commandUnits = SpawnEditorGroup(Army.EnemyOutpost, 'FORWARD_COMMAND')
     MissionState.ForwardGroups.Command = commandUnits
-    MissionState.Targets.ForwardCommand = commandTree.Forward_Command_Post
+    MissionState.Targets.ForwardCommand = GetNamedArmyUnit(Army.EnemyOutpost, 'Forward_Command_Post')
 
-    local radarUnits, radarTree = SpawnEditorGroup(Army.EnemyOutpost, 'FORWARD_RADAR')
+    local radarUnits = SpawnEditorGroup(Army.EnemyOutpost, 'FORWARD_RADAR')
     MissionState.ForwardGroups.Radar = radarUnits
-    MissionState.Targets.Radar = radarTree.Forward_Radar
+    MissionState.Targets.Radar = GetNamedArmyUnit(Army.EnemyOutpost, 'Forward_Radar')
 
     MissionState.ForwardGroups.Garrison = SpawnEditorGroup(Army.EnemyOutpost, 'FORWARD_GARRISON')
 
