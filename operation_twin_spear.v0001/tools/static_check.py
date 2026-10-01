@@ -260,6 +260,7 @@ KNOWN_BLUEPRINTS = {
     "url0107",
     "url0202",
     "url0205",
+    "url0306",
     "url0105",
     "ura0101",
     "ura0102",
