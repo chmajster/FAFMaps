@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Stage 1 static checks for Operation Twin Spear.
+"""Static contract checks for Operation Twin Spear Stage 2.
 
-This deliberately avoids pretending to validate the binary .scmap. If \`luac\` is
-available it is used for syntax parsing; otherwise deterministic structural
-checks still validate the mission contract and Lua delimiter balance.
+The binary .scmap cannot be validated in this repository until it is exported
+from FAF Map Editor. This checker validates the Lua/save mission contract and
+uses luac -p when a Lua compiler is available.
 """
 
 from __future__ import annotations
@@ -26,17 +26,79 @@ LUA_FILES = [
 REQUIRED_MARKERS = {
     "PLAYER_1_START",
     "PLAYER_2_START",
-    "ENEMY_OUTPOST_BASE",
-    "ENEMY_MAIN_BASE",
-    "OBJECTIVE_OUTPOST",
-    "OBJECTIVE_FINAL_TEST",
-    "EXPANSION_1_CENTER",
-    "ATTACK_PATH_WEST_01",
-    "ATTACK_PATH_WEST_02",
-    "ATTACK_PATH_WEST_03",
-    "ATTACK_PATH_EAST_01",
-    "ATTACK_PATH_EAST_02",
-    "ATTACK_PATH_EAST_03",
+    "P1_ATTACK_TARGET",
+    "P2_ATTACK_TARGET",
+    "P1_EXPANSION_01",
+    "P2_EXPANSION_01",
+    "CENTRAL_EXPANSION",
+    "CROSSING_WEST",
+    "CROSSING_EAST",
+    "CROSSING_CENTER_OPTIONAL",
+    "CYBRAN_FORWARD_SPAWN_WEST",
+    "CYBRAN_FORWARD_SPAWN_EAST",
+    "ATTACK_WEST_01",
+    "ATTACK_WEST_02",
+    "ATTACK_WEST_03",
+    "ATTACK_EAST_01",
+    "ATTACK_EAST_02",
+    "ATTACK_EAST_03",
+    "FORWARD_OUTPOST_CENTER",
+    "FORWARD_COMMAND_POST",
+    "FORWARD_RADAR",
+    "REINFORCEMENT_01",
+    "REINFORCEMENT_02",
+    "WEST_OUTPOST_FUTURE",
+    "EAST_OUTPOST_FUTURE",
+    "WEST_SECTOR_FUTURE",
+    "EAST_SECTOR_FUTURE",
+    "DEFENSE_LINE_CENTER",
+    "CYBRAN_MAIN_BASE",
+}
+
+P1_START_RESOURCES = {
+    "P1_MASS_01": "MassMarker",
+    "P1_MASS_02": "MassMarker",
+    "P1_MASS_03": "MassMarker",
+    "P1_MASS_04": "MassMarker",
+    "P1_HYDRO_01": "HydroMarker",
+}
+
+P2_START_RESOURCES = {
+    "P2_MASS_01": "MassMarker",
+    "P2_MASS_02": "MassMarker",
+    "P2_MASS_03": "MassMarker",
+    "P2_MASS_04": "MassMarker",
+    "P2_HYDRO_01": "HydroMarker",
+}
+
+REQUIRED_AREAS = {
+    "AREA_PHASE_1",
+    "AREA_PHASE_2",
+    "AREA_PHASE_3",
+    "AREA_FINALE",
+    "AREA_FORWARD_DISCOVERY",
+    "AREA_FORWARD_OUTPOST",
+    "AREA_P1_START",
+    "AREA_P2_START",
+}
+
+REQUIRED_CHAINS = {
+    "CHAIN_FORWARD_TO_P1",
+    "CHAIN_FORWARD_TO_P2",
+    "CHAIN_FORWARD_REINFORCEMENT",
+    "CHAIN_FORWARD_GARRISON",
+}
+
+REQUIRED_GROUPS = {
+    "FORWARD_PRODUCTION",
+    "FORWARD_PRODUCTION_EXTRA_D2",
+    "FORWARD_ECONOMY",
+    "FORWARD_DEFENSE",
+    "FORWARD_DEFENSE_NORMAL",
+    "FORWARD_DEFENSE_HARD",
+    "FORWARD_COMMAND",
+    "FORWARD_RADAR",
+    "FORWARD_GARRISON",
 }
 
 REQUIRED_FUNCTIONS = {
@@ -55,6 +117,38 @@ REQUIRED_FUNCTIONS = {
     "GetScaledUnitCount",
     "GetScaledDelay",
     "GetScaledResourceMultiplier",
+    "SpawnAttackWave",
+    "ActivateForwardObjective",
+    "StartCounterattack",
+}
+
+REQUIRED_WAVES = {
+    "Phase1_Wave_01",
+    "Phase1_Wave_02",
+    "Phase1_Wave_03",
+    "Phase1_Wave_04",
+    "Counterattack_West",
+    "Counterattack_East",
+}
+
+KNOWN_BLUEPRINTS = {
+    "uel0001",
+    "url0101",
+    "url0103",
+    "url0104",
+    "url0107",
+    "url0202",
+    "url0205",
+    "ura0102",
+    "ura0103",
+    "urb0101",
+    "urb0102",
+    "urb0201",
+    "urb1101",
+    "urb1103",
+    "urb2101",
+    "urb2104",
+    "urb3101",
 }
 
 
@@ -77,8 +171,9 @@ def strip_strings_and_comments(source: str) -> str:
 
 def check_delimiters(path: pathlib.Path) -> None:
     source = strip_strings_and_comments(path.read_text(encoding="utf-8"))
-    pairs = {')': '(', ']': '[', '}': '{'}
+    pairs = {")": "(", "]": "[", "}": "{"}
     stack: list[tuple[str, int]] = []
+
     for line_number, line in enumerate(source.splitlines(), 1):
         for char in line:
             if char in "([{":
@@ -87,9 +182,11 @@ def check_delimiters(path: pathlib.Path) -> None:
                 if not stack or stack[-1][0] != pairs[char]:
                     fail(f"{path.name}:{line_number}: unmatched {char}")
                 stack.pop()
+
     if stack:
         char, line = stack[-1]
         fail(f"{path.name}:{line}: unmatched {char}")
+
     ok(f"balanced delimiters: {path.name}")
 
 
@@ -106,6 +203,38 @@ def run_luac_if_available() -> None:
         ok(f"luac syntax: {path.name}")
 
 
+def declared_markers(save: str) -> dict[str, str]:
+    result: dict[str, str] = {}
+    pattern = re.compile(
+        r"^\s*([A-Z][A-Z0-9_]*)\s*=\s*(BlankMarker|MassMarker|HydroMarker)\(",
+        re.MULTILINE,
+    )
+    for match in pattern.finditer(save):
+        result[match.group(1)] = match.group(2)
+    return result
+
+
+def require_named_tables(source: str, names: set[str], label: str) -> None:
+    missing = []
+    for name in sorted(names):
+        if re.search(rf"^\s*{re.escape(name)}\s*=\s*\{{", source, re.MULTILINE) is None:
+            missing.append(name)
+    if missing:
+        fail(f"missing {label}: " + ", ".join(missing))
+    ok(f"required {label} present ({len(names)})")
+
+
+def extract_start_phase2(script: str) -> str:
+    match = re.search(
+        r"function\s+StartPhase2\s*\(\s*\)(.*?)\nend\n\nfunction\s+MissionVictory",
+        script,
+        flags=re.S,
+    )
+    if not match:
+        fail("could not isolate StartPhase2 for transition safety check")
+    return match.group(1)
+
+
 def main() -> int:
     for path in LUA_FILES:
         if not path.is_file():
@@ -115,6 +244,7 @@ def main() -> int:
     scenario = (ROOT / "operation_twin_spear_scenario.lua").read_text(encoding="utf-8")
     save = (ROOT / "operation_twin_spear_save.lua").read_text(encoding="utf-8")
     script = (ROOT / "operation_twin_spear_script.lua").read_text(encoding="utf-8")
+    editor_plan = ROOT / "MAP_EDITOR_PLAN.md"
 
     for token in ("type = 'campaign_coop'", "'Player1'", "'Player2'", "{'uef'}"):
         if token not in scenario:
@@ -122,47 +252,119 @@ def main() -> int:
     ok("campaign_coop scenario with two UEF player slots")
 
     for army in ("Player1", "Player2", "CybranMain", "CybranOutpost", "Neutral"):
-        if re.search(rf"\b{re.escape(army)}\s*=\s*EmptyArmy", save) is None:
+        if re.search(rf"\b{re.escape(army)}\s*=\s*(?:EmptyArmy|Player|Cybran|Neutral)", save) is None:
             fail(f"save.lua missing army: {army}")
-    ok("all Stage 1 armies declared")
+    ok("all mission armies declared")
 
-    missing_markers = sorted(marker for marker in REQUIRED_MARKERS if marker not in save)
+    markers = declared_markers(save)
+    missing_markers = sorted(REQUIRED_MARKERS - markers.keys())
     if missing_markers:
-        fail("missing markers: " + ", ".join(missing_markers))
-    ok(f"required marker set present ({len(REQUIRED_MARKERS)})")
+        fail("missing concrete marker declarations: " + ", ".join(missing_markers))
+    ok(f"required concrete markers declared ({len(REQUIRED_MARKERS)})")
 
-    for function in REQUIRED_FUNCTIONS:
+    for name, marker_type in {**P1_START_RESOURCES, **P2_START_RESOURCES}.items():
+        if markers.get(name) != marker_type:
+            fail(f"{name} must be declared with {marker_type}")
+    ok("each player has exactly the required 4 Mass + 1 Hydro start contract")
+
+    require_named_tables(save, REQUIRED_AREAS, "areas")
+    require_named_tables(save, REQUIRED_CHAINS, "chains")
+
+    for group in sorted(REQUIRED_GROUPS):
+        if re.search(
+            rf"CybranOutpost\.Units\.Units\.{re.escape(group)}\s*=\s*GROUP",
+            save,
+        ) is None:
+            fail(f"missing Forward Outpost group: {group}")
+    ok(f"Forward Outpost logical groups present ({len(REQUIRED_GROUPS)})")
+
+    for function in sorted(REQUIRED_FUNCTIONS):
         if re.search(rf"function\s+{re.escape(function)}\s*\(", script) is None:
             fail(f"mission function missing: {function}")
-    ok("mission lifecycle/scaling functions present")
+    ok("Stage 2 lifecycle/wave/debug functions present")
+
+    for wave in sorted(REQUIRED_WAVES):
+        if re.search(rf"\b{re.escape(wave)}\s*=\s*\{{", script) is None:
+            fail(f"wave definition missing: {wave}")
+    ok("all required Phase 1 wave definitions present")
 
     required_apis = (
         "ScenarioUtils.InitializeScenarioArmies()",
+        "ScenarioFramework.SetPlayableArea(",
+        "ScenarioFramework.CreateAreaTrigger(",
+        "ScenarioFramework.CreateGroupDeathTrigger(",
+        "ScenarioFramework.PlatoonPatrolChain(",
+        "ScenarioUtils.ChainToPositions(",
         "Objectives.Kill(",
-        "ScenarioFramework.CreateUnitDeathTrigger",
-        "ScenarioFramework.EndOperation(",
+        "Objectives.Unknown(",
         "ForkThread(",
         "WaitSeconds(",
     )
     for api in required_apis:
         if api not in script:
             fail(f"required FAF API missing: {api}")
-    ok("required current FAF APIs referenced")
+    ok("required current FAF campaign APIs referenced")
+
+    if "url0106" in script.lower() or "url0106" in save.lower():
+        fail("invalid/nonexistent Cybran url0106 blueprint is forbidden")
+    ok("legacy invalid url0106 reference removed")
+
+    discovered_blueprints = set(
+        re.findall(r"UnitSpec\('([a-z][a-z0-9]+)'", save)
+        + re.findall(r"=\s*'([a-z]{3}\d{4})'", script)
+    )
+    unknown = sorted(discovered_blueprints - KNOWN_BLUEPRINTS)
+    if unknown:
+        fail("unreviewed unit blueprints: " + ", ".join(unknown))
+    ok(f"all referenced Stage 2 blueprints are allow-listed ({len(discovered_blueprints)})")
 
     if "GetArmyBrain('Player2')" in script or 'GetArmyBrain("Player2")' in script:
         fail("unconditional literal Player2 brain lookup detected")
-    ok("no unconditional literal Player2 brain lookup")
+    ok("Player2 remains guarded")
 
-    if (ROOT / "operation_twin_spear.scmap").exists():
-        size = (ROOT / "operation_twin_spear.scmap").stat().st_size
-        if size < 1024:
+    phase2 = extract_start_phase2(script)
+    if "MissionVictory(" in phase2 or "EndOperation(" in phase2:
+        fail("Stage 2 must not end the operation from StartPhase2")
+    if "Objectives.Unknown(" not in phase2:
+        fail("StartPhase2 must create the placeholder objective")
+    ok("Phase 1 transitions to a non-victory Phase 2 placeholder")
+
+    required_text = (
+        "Destroy the Forward Command Post",
+        "Destroy Cybran Radar",
+        "AREA_PHASE_1",
+        "AREA_PHASE_2",
+        "Counterattack",
+    )
+    for token in required_text:
+        if token not in script:
+            fail(f"Stage 2 mission flow token missing: {token}")
+    ok("primary/secondary/counterattack/map expansion flow present")
+
+    if not editor_plan.is_file():
+        fail("MAP_EDITOR_PLAN.md is required when a real .scmap is not generated")
+    plan_text = editor_plan.read_text(encoding="utf-8")
+    for token in (
+        "CROSSING_WEST",
+        "CROSSING_EAST",
+        "FORWARD_OUTPOST_CENTER",
+        "Resource markers",
+        "Pathing validation",
+    ):
+        if token not in plan_text:
+            fail(f"MAP_EDITOR_PLAN.md missing section/token: {token}")
+    ok("map editor handoff plan present")
+
+    scmap = ROOT / "operation_twin_spear.scmap"
+    if scmap.exists():
+        if scmap.stat().st_size < 1024:
             fail("suspicious/fake .scmap detected")
         ok("binary .scmap candidate exists and is non-trivial")
     else:
-        print("[INFO] .scmap intentionally absent; must be created with FAF Map Editor")
+        print("[INFO] .scmap intentionally absent; Stage 2 requires FAF Map Editor export")
 
     run_luac_if_available()
-    print("[PASS] Operation Twin Spear Stage 1 static checks passed")
+    print("[PASS] Operation Twin Spear Stage 2 static checks passed")
     return 0
 
 

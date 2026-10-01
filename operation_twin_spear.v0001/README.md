@@ -1,237 +1,455 @@
 # Operation Twin Spear
 
-Stage 1 foundation for a scripted 1–2 player Forged Alliance Forever co-op operation.
+Stage 2 of a scripted Forged Alliance Forever co-op operation for exactly 1–2 UEF players.
 
-The Lua framework is implemented. The binary `operation_twin_spear.scmap` is intentionally **not** committed yet: a valid SCMap must be created/saved by FAF Map Editor (or another real SCMap-capable tool). A text placeholder with a `.scmap` extension is not acceptable.
+Stage 1 established the mission framework. Stage 2 turns the southern sector into the first playable campaign chapter: starting economies, river crossings, Forward Outpost, four scripted opening waves, objective discovery, an optional radar objective, a Cybran counterattack and the controlled transition into a Phase 2 placeholder.
+
+The binary `operation_twin_spear.scmap` is still intentionally absent. It must be authored/exported with FAF Map Editor from the exact specification in [MAP_EDITOR_PLAN.md](MAP_EDITOR_PLAN.md). Do not create a text file pretending to be an SCMap.
 
 ## Requirements
 
 - Supreme Commander: Forged Alliance with Forged Alliance Forever.
-- A current FAF game version compatible with the APIs used by `FAForever/fa`.
-- FAF Map Editor for creating/editing the binary `.scmap`.
-- Python 3 only for the repository static checker.
+- A current FAF game build compatible with `FAForever/fa`.
+- FAF Map Editor for terrain, props, passability and binary `.scmap` export.
+- Python 3 for repository contract checks.
 
-The Stage 1 script uses current FAF mission APIs and conventions:
+The implementation was aligned with current FAF APIs, including:
 
 - `ScenarioUtils.InitializeScenarioArmies()`
-- `ScenarioFramework`
+- resource markers consumed by `ScenarioUtils.CreateResources()` during sim initialization
+- `ScenarioFramework.SetPlayableArea(...)`
+- `ScenarioFramework.CreateAreaTrigger(...)`
+- `ScenarioFramework.CreateGroupDeathTrigger(...)`
+- `ScenarioFramework.PlatoonPatrolChain(...)`
+- `ScenarioUtils.ChainToPositions(...)`
 - `Objectives.Kill(...)`
-- objective `AddResultCallback(...)`
-- `ScenarioFramework.CreateUnitDeathTrigger(...)`
-- `ScenarioFramework.EndOperation(...)`
-- `ScenarioInfo.Options.Difficulty` values 1/2/3
+- `Objectives.Unknown(...)`
+- `ScenarioInfo.Options.Difficulty`
 
 ## Installation
 
-The final installed map directory must be named:
+The installed directory must be:
 
 ```text
 operation_twin_spear.v0001
 ```
 
-On a standard Windows FAF setup, copy it to:
+Typical Windows path:
 
 ```text
 C:\Users\<USER>\Documents\My Games\Gas Powered Games\Supreme Commander Forged Alliance\maps\operation_twin_spear.v0001\
 ```
 
-If FAF is configured to use its fallback vault location, use:
+FAF fallback vault path:
 
 ```text
 C:\ProgramData\FAForever\user\My Games\Gas Powered Games\Supreme Commander Forged Alliance\maps\operation_twin_spear.v0001\
 ```
 
-The FAF client-configured maps directory is authoritative if it differs from either default path.
+Use the maps directory configured by the FAF client if it differs.
 
-The folder must contain a real:
-
-```text
-operation_twin_spear.scmap
-```
-
-before FAF can load the operation.
-
-## Running the mission
-
-1. Create the real `.scmap` as described in **Map editing**.
-2. Verify the folder name is exactly `operation_twin_spear.v0001`.
-3. Copy the folder to FAF's user `maps` directory.
-4. Start FAF and host a co-op/custom operation using `Operation Twin Spear`.
-5. Use one or two human player slots only.
-6. Choose Easy, Normal, or Hard in the FAF co-op difficulty selector.
-7. Start the game and verify the log contains `[OTS][INIT] Mission initialized`.
-
-Expected Stage 1 flow:
+## Stage 2 gameplay flow
 
 ```text
-spawn UEF ACU(s)
-  -> Phase 1
-  -> destroy Cybran Forward Command Post
-  -> Phase 2 test
-  -> destroy Cybran Fire-Control Artillery
-  -> scripted victory
+UEF insertion
+  ↓
+8 s intro delay
+  ↓
+HQ: establish foothold
+  ↓
+second HQ message
+  ↓
+Phase 1 begins
+  ↓
+Scout Patrol
+  ↓
+Light Land Attack
+  ↓
+Mixed Land Attack
+  ↓
+Forward Outpost discovered by area trigger OR max timer
+  ↓
+PRIMARY: Destroy the Forward Command Post
+SECONDARY: Destroy Cybran Radar
+  ↓
+Air Harassment unless radar disruption cancels it
+  ↓
+Command Post destroyed
+  ↓
+~20 s reaction delay
+  ↓
+Cybran counterattack
+  ↓
+counterattack reduced to <=30% or destroyed
+  ↓
+Phase 1 complete
+  ↓
+AREA_PHASE_2 unlocked
+  ↓
+Phase 2 placeholder objective
 ```
 
-## Development
+Stage 2 deliberately does **not** call victory after Phase 1.
 
-Primary mission code is in `operation_twin_spear_script.lua`.
+## Player starts and economy
 
-The script deliberately keeps mission state centralized in `MissionState`. Add future phases by extending the phase functions and state tables rather than scattering global flags.
+Player 1 starts in the south-west at approximately `(320, 882)`.
 
-Core lifecycle functions:
+Player 2 starts in the south-east at approximately `(704, 882)`.
 
-- `OnPopulate()`
-- `OnStart()`
-- `InitializeMissionState()`
-- `InitializePlayers()`
-- `InitializeEnemyArmies()`
-- `StartMission()`
-- `StartPhase1()`
-- `CompletePhase1()`
-- `StartPhase2()`
-- `MissionVictory()`
-- `MissionFailure()`
+Each player has:
 
-Central scaling helpers:
+- four nearby Mass deposits,
+- one Hydrocarbon deposit,
+- a separate base basin,
+- a three-Mass first expansion,
+- a natural route toward their corresponding river crossing.
 
-- `GetActivePlayerCount()`
-- `GetScaledUnitCount(baseCount)`
-- `GetScaledDelay(baseDelay)`
-- `GetScaledResourceMultiplier()`
+The central expansion has four Mass deposits and one Hydrocarbon. It sits under pressure from the Forward Outpost and becomes the economic reward for clearing the sector.
 
-Current player scaling:
+## Playable-area progression
 
-| Players | Enemy multiplier | Delay multiplier | Resource multiplier |
+Phase 1:
+
+```text
+AREA_PHASE_1 = RECTANGLE(96, 548, 928, 1024)
+```
+
+After Phase 1:
+
+```text
+AREA_PHASE_2 = RECTANGLE(64, 352, 960, 1024)
+```
+
+Future contracts already exist for:
+
+- `AREA_PHASE_3`
+- `AREA_FINALE`
+
+No Fog-of-War hack is used. The mission uses the FAF operation playable-area mechanism.
+
+## Forward Outpost
+
+The Forward Outpost is no longer assembled by scattered `CreateUnit()` calls. It is defined as editable groups in `operation_twin_spear_save.lua`.
+
+### FORWARD_PRODUCTION
+
+- T1 Cybran Land Factory
+- T1 Cybran Air Factory
+- Normal/Hard: second T1 Land Factory via `FORWARD_PRODUCTION_EXTRA_D2`
+
+### FORWARD_ECONOMY
+
+- 4 × T1 Power Generator
+- 3 × T1 Mass Extractor
+
+### FORWARD_DEFENSE
+
+Easy/core:
+
+- 1 × T1 Point Defense
+- 1 × T1 Anti-Air Turret
+
+Normal adds:
+
+- 1 × T1 Point Defense
+
+Hard adds:
+
+- 2 × additional T1 Anti-Air Turrets
+
+### FORWARD_COMMAND
+
+The objective target is a Cybran T2 Land Factory HQ model (`urb0201`) renamed to:
+
+```text
+Cybran Forward Command Post
+```
+
+It acts as the temporary command/communications asset for this mission chapter.
+
+### FORWARD_RADAR
+
+- 1 × T1 Cybran Radar
+- optional secondary objective target
+
+### FORWARD_GARRISON
+
+- 4 × Mantis / Assault Bot
+- 2 × T1 Mobile AA
+- 1 × T1 Land Scout
+
+## Primary objective
+
+Title:
+
+```text
+Destroy the Forward Command Post
+```
+
+Description:
+
+```text
+Destroy the Cybran forward command facility and secure the southern sector.
+```
+
+The objective is activated when either:
+
+1. an active player enters `AREA_FORWARD_DISCOVERY`, or
+2. the maximum discovery timer expires, or
+3. the Command Post is destroyed early.
+
+Early destruction is explicitly handled. If a rush kills the building before assignment, the objective is created as already completed and the mission advances into the counterattack sequence instead of soft-locking.
+
+## Secondary objective
+
+Title:
+
+```text
+Destroy Cybran Radar
+```
+
+Destroying the radar:
+
+- completes the optional objective,
+- sets the radar disruption mission state,
+- cancels `Phase1_Wave_04` if it has not launched,
+- suppresses later Stage 2 air coordination tied to that wave,
+- displays the UEF message that enemy air coordination has been disrupted.
+
+It is not required for Phase 1 completion.
+
+## Wave system
+
+All opening attacks use the reusable `SpawnAttackWave(config)` path.
+
+The wave system:
+
+- uses centralized configs,
+- spawns one controlled platoon/composition per wave,
+- scales through `GetScaledUnitCount()`,
+- routes land forces through FAF marker chains,
+- chooses only living/active player targets,
+- supports P1/P2 bias without assuming Player1 is always the target,
+- can split the air harassment between both players,
+- suppresses normal waves after the Forward Command Post dies,
+- prevents duplicate non-repeat waves.
+
+### Phase1_Wave_01 — Scout Patrol
+
+Spawn:
+
+- west Forward Outpost spawn
+
+Base composition before scaling:
+
+- 2 × Mantis
+- 1 × T1 Mobile AA
+- 1 × Land Scout
+
+Target bias:
+
+- P1
+
+Approximate normal timing:
+
+- 2 minutes after Phase 1 begins
+
+### Phase1_Wave_02 — Light Land Attack
+
+Base composition:
+
+- 5 × Mantis
+- 1 × T1 Mobile AA
+
+Target bias:
+
+- P1
+
+Approximate normal timing:
+
+- 2.5 minutes after Wave 1
+
+### Phase1_Wave_03 — Mixed Land Attack
+
+Base composition:
+
+- 5 × Mantis
+- 2 × T1 Mobile Artillery
+- 2 × T1 Mobile AA
+
+Target bias:
+
+- P2 when active, otherwise an available player
+
+Approximate normal timing:
+
+- 2 minutes 40 seconds after Wave 2
+
+### Phase1_Wave_04 — Air Harassment
+
+Base composition:
+
+- 2 × Interceptor
+- 1 × T1 Bomber
+
+Behavior:
+
+- split between P1/P2 when both commanders remain active,
+- otherwise attack the surviving player,
+- cancelled if the radar objective is completed before launch.
+
+### Controlled Forward reinforcements
+
+The outpost receives limited reinforcement groups after the opening minutes.
+
+Rules:
+
+- start after ~5 normal minutes,
+- interval ~130 seconds before difficulty/player scaling,
+- maximum tracked active force ≈10 solo / 15 co-op,
+- no infinite spawn loop,
+- stops if Forward production is destroyed,
+- stops if the Forward Command Post is destroyed,
+- recurring thread exits when Phase 1 ends.
+
+## Counterattack
+
+The Command Post does not instantly complete Phase 1.
+
+After destruction:
+
+1. the primary objective is complete,
+2. HQ warns the players,
+3. the mission waits roughly 20 seconds before scaling,
+4. two reaction groups enter from the north,
+5. the phase completes only when the counterattack is destroyed or reduced to 30% of its initial force.
+
+Normal counterattack uses T1 Mantis, artillery and mobile AA.
+
+Hard additionally introduces the first T2 elements:
+
+- Rhino / Heavy Tank (`url0202`)
+- T2 mobile flak where configured (`url0205`)
+
+No artificial HP multiplier is used.
+
+## Scaling
+
+### Player count
+
+| Active players | Enemy unit multiplier | Delay multiplier | Resource multiplier |
 |---:|---:|---:|---:|
 | 1 | 1.00 | 1.00 | 1.00 |
 | 2 | 1.50 | 0.90 | 1.25 |
 
-Current difficulty scaling:
+Two-player strength is therefore approximately 1.5× solo, not 2×.
 
-| FAF difficulty | Name | Units | Delay | Resources |
-|---:|---|---:|---:|---:|
-| 1 | Easy | 0.85 | 1.15 | 0.90 |
-| 2 | Normal | 1.00 | 1.00 | 1.00 |
-| 3 | Hard | 1.20 | 0.85 | 1.20 |
+### Difficulty
 
-## Map editing
+| Difficulty | Unit multiplier | Delay multiplier | Static-base effect |
+|---|---:|---:|---|
+| Easy | 0.85 | 1.15 | core defense only, no T2 counter units |
+| Normal | 1.00 | 1.00 | second factory + extra PD |
+| Hard | 1.20 | 0.85 | extra AA + T2 counterattack additions |
 
-Target playable size is 20 km × 20 km, represented by a 1024 × 1024 FAF map.
+`GetScaledUnitCount()` uses rounded scaling rather than the old unconditional ceiling, so Easy can actually reduce larger groups.
 
-Create the binary map with FAF Map Editor:
+## Attack routing
 
-1. Create a new 1024 × 1024 map or use a legally reusable blank 1024 × 1024 FAF template.
-2. Save/export it as `operation_twin_spear.scmap` inside this directory.
-3. Keep the scenario/save/script filenames from this repository.
-4. Create or verify every marker from the table below. Marker spelling is part of the script API.
-5. Preserve the army names `Player1`, `Player2`, `CybranMain`, `CybranOutpost`, and `Neutral`.
-6. If the editor regenerates `operation_twin_spear_save.lua`, restore the exact army, marker and chain names used here before committing it.
-7. Ensure the terrain height at all initial Stage 1 spawn markers is valid for land structures/ACUs. The checked-in starter marker data uses Y=0 because the final terrain does not exist yet; runtime spawning recalculates land-unit Y with `GetTerrainHeight(x, z)`.
+Primary chains:
 
-Recommended high-level layout:
+- `CHAIN_FORWARD_TO_P1`
+- `CHAIN_FORWARD_TO_P2`
+- `CHAIN_FORWARD_REINFORCEMENT`
+- `CHAIN_FORWARD_GARRISON`
 
-```text
-                  NORTH
-
-              MAIN CYBRAN BASE
-                     |
-                DEFENSE SECTOR
-                 /         \
-        WEST OUTPOST     EAST OUTPOST
-                 \         /
-                  CENTRAL
-
-            PLAYER 1   PLAYER 2
-
-                  SOUTH
-```
-
-## Required markers
-
-| Marker | Type | Purpose |
-|---|---|---|
-| `PLAYER_1_START` | Blank Marker | Player 1 UEF ACU spawn |
-| `PLAYER_2_START` | Blank Marker | Player 2 UEF ACU spawn |
-| `ENEMY_OUTPOST_BASE` | Blank Marker | Outpost defender center |
-| `ENEMY_MAIN_BASE` | Blank Marker | Future main Cybran base anchor |
-| `OBJECTIVE_OUTPOST` | Blank Marker | Phase 1 command-post target |
-| `OBJECTIVE_FINAL_TEST` | Blank Marker | Phase 2 test target |
-| `EXPANSION_1_CENTER` | Blank Marker | Future central expansion anchor |
-| `ATTACK_PATH_WEST_01` | Blank Marker | West route node 1 |
-| `ATTACK_PATH_WEST_02` | Blank Marker | West route node 2 |
-| `ATTACK_PATH_WEST_03` | Blank Marker | West route node 3 |
-| `ATTACK_PATH_EAST_01` | Blank Marker | East route node 1 |
-| `ATTACK_PATH_EAST_02` | Blank Marker | East route node 2 |
-| `ATTACK_PATH_EAST_03` | Blank Marker | East route node 3 |
-
-Required chains:
-
-| Chain | Markers |
-|---|---|
-| `ATTACK_PATH_WEST` | `ATTACK_PATH_WEST_01` -> `02` -> `03` |
-| `ATTACK_PATH_EAST` | `ATTACK_PATH_EAST_01` -> `02` -> `03` |
-
-## Armies
-
-The external names use current FAF co-op conventions (`Player1`, `Player2`) instead of literal `ARMY_1`/`ARMY_2`, because current FAF co-op logic recognizes `Player*` armies as human-player armies. Internally they correspond to the two requested player armies.
-
-| Army | Faction | Purpose |
-|---|---|---|
-| `Player1` | UEF | Player 1 / requested ARMY_1 |
-| `Player2` | UEF | Player 2 / requested ARMY_2; optional in solo |
-| `CybranMain` | Cybran | Main Cybran force |
-| `CybranOutpost` | Cybran | Forward Cybran outpost |
-| `Neutral` | Neutral role | Future story/civilian assets |
-
-`Player2` is never looked up through a literal unconditional `GetArmyBrain('Player2')`. All player-2 setup is gated by active-army detection.
+Land waves receive aggressive-move orders through chain positions. Coordinates are not duplicated throughout mission Lua.
 
 ## Debug mode
 
-In `operation_twin_spear_script.lua`:
+Normal configuration:
 
 ```lua
 local DEBUG = false
 ```
 
-Set it to `true` only during development. Debug mode:
+Development options:
 
-- reduces scripted delays to 10% (minimum 0.25 s),
-- enables `[OTS][DEBUG/...]` messages,
-- does not alter production behavior when `DEBUG = false`.
+```lua
+local DEBUG_OPTIONS = {
+    StartPhase1Immediately = false,
+    SkipIntro = false,
+}
+```
+
+When `DEBUG = true`, the script exposes `OTS_Debug`:
+
+```text
+OTS_Debug.SpawnWave(name)
+OTS_Debug.CompleteForwardObjective()
+OTS_Debug.StartCounterattack()
+OTS_Debug.CompletePhase1()
+```
+
+These controls are not created in normal gameplay.
+
+Debug timing also uses the existing accelerated delay behavior.
 
 ## Logging
 
-Mission logs use one prefix:
+Representative output:
 
 ```text
-[OTS][INIT] Mission initialized
-[OTS][PLAYER] Active players: 2
-[OTS][PHASE] Starting Phase 1
-[OTS][OBJECTIVE] Forward Command objective created
-[OTS][OBJECTIVE] Forward Command destroyed
-[OTS][PHASE] Phase 1 complete
-[OTS][VICTORY] Mission completed
+[OTS][PHASE1] Starting
+[OTS][WAVE] Spawn Phase1_Wave_01
+[OTS][WAVE] Target Player1
+[OTS][OBJECTIVE] Forward Outpost discovered via area trigger: Player1
+[OTS][OBJECTIVE] Forward Command Post destroyed
+[OTS][COUNTER] Starting Cybran counterattack
+[OTS][COUNTER] Counterattack broken: 4/16 units remain
+[OTS][PHASE1] Completed
+[OTS][MAP] Expanding playable area: AREA_PHASE_2
+[OTS][PHASE2] Placeholder started
 ```
 
-There is no per-tick log spam. The player-presence watchdog wakes every five seconds and logs only a state change.
+No recurring system logs every tick.
+
+## Map editing
+
+Use [MAP_EDITOR_PLAN.md](MAP_EDITOR_PLAN.md) as the authoritative handoff for:
+
+- 20 km terrain composition,
+- exact approximate X/Z coordinates,
+- river geometry,
+- crossings,
+- terrain-height recommendations,
+- resource markers,
+- Forward Outpost placement,
+- chains,
+- playable areas,
+- future-sector reservations,
+- props and wreck zones,
+- pathing acceptance tests.
+
+The checked-in `save.lua` is the scripting contract. If FAF Map Editor regenerates it, preserve all required names and group semantics.
 
 ## Project structure
 
 ```text
 operation_twin_spear.v0001/
-├── operation_twin_spear_scenario.lua   # FAF co-op scenario registration
-├── operation_twin_spear_save.lua       # armies, markers, areas and chains
-├── operation_twin_spear_script.lua     # mission runtime and objectives
-├── operation_twin_spear_operation.lua  # operation/debrief metadata
-├── operation_twin_spear.scmap          # NOT YET COMMITTED; real binary map required
+├── MAP_EDITOR_PLAN.md
 ├── README.md
+├── operation_twin_spear_operation.lua
+├── operation_twin_spear_save.lua
+├── operation_twin_spear_scenario.lua
+├── operation_twin_spear_script.lua
+├── operation_twin_spear.scmap        # manual FAF Map Editor export; not yet present
 └── tools/
-    └── static_check.py                  # deterministic Stage 1 static checks
+    └── static_check.py
 ```
 
-There is intentionally no `_options.lua`: current FAF co-op missions use FAF's operation difficulty in `ScenarioInfo.Options.Difficulty`, so Stage 1 does not add an unnecessary parallel options system.
-
-## Testing
+## Static testing
 
 Run:
 
@@ -239,20 +457,54 @@ Run:
 python3 tools/static_check.py
 ```
 
-The checker verifies the Lua files, scenario contract, army names, required markers, lifecycle/scaling functions, current FAF API references, absence of an unconditional literal Player2 brain lookup, and rejects a suspicious tiny fake `.scmap`. If `luac` exists locally, it additionally executes `luac -p` for every Lua file.
+CI additionally installs Lua and executes `luac -p` for each Lua file.
 
-Manual FAF runtime checklist after the real `.scmap` exists:
+Static checks cover:
 
-- [ ] TEST 1 — Solo: Player1 spawns, Player2 is absent, mission starts.
-- [ ] TEST 2 — Co-op: both UEF ACUs spawn with separate armies/economies.
-- [ ] TEST 3 — Objective: Phase 1 objective appears and completes when its target dies.
-- [ ] TEST 4 — Progression: Phase 1 transitions exactly once to Phase 2.
-- [ ] TEST 5 — Victory: Phase 2 objective calls scripted operation victory.
-- [ ] TEST 6 — Defeat solo: the only ACU dying causes defeat.
-- [ ] TEST 7 — Defeat co-op: one ACU dying does not cause defeat; both dying does.
-- [ ] TEST 8 — Callbacks: duplicate/late callbacks do not double-complete phases or the mission.
-- [ ] Missing-marker test: remove/rename one required marker and verify a clear `[OTS][FAIL]` path instead of an uncontrolled Lua exception.
-- [ ] Early-destruction test: destroy the Phase 1 target before formal objective activation and verify the script advances safely.
-- [ ] Player-departure test: disconnect one co-op participant and confirm the surviving commander can continue if FAF removes that army from `ListArmies()`.
+- campaign/co-op scenario shape,
+- concrete marker declarations rather than arbitrary name occurrences,
+- start resource contract,
+- named areas,
+- chains,
+- Forward Outpost groups,
+- required Stage 2 functions,
+- wave definitions,
+- current FAF API calls,
+- known/verified unit blueprint allow-list,
+- explicit rejection of the obsolete `url0106` reference,
+- guarded Player2 access,
+- Phase 2 not calling victory,
+- presence of the Map Editor handoff.
 
-The repository static checker cannot validate game-engine behavior. Tests 1–8 require an actual FAF runtime and a valid binary `.scmap`.
+## Runtime acceptance checklist
+
+These tests require the real binary map and FAF runtime.
+
+- [ ] TEST 1 — Solo: build space, resources and all opening waves work.
+- [ ] TEST 2 — Two players: pressure is distributed and P2-targeted waves do not assume P1.
+- [ ] TEST 3 — Discovery: Forward objective appears on entering the discovery area.
+- [ ] TEST 4 — Rush: destroying Command Post before discovery does not soft-lock.
+- [ ] TEST 5 — Radar: secondary completes and pending air harassment is cancelled.
+- [ ] TEST 6 — Counterattack: starts exactly once after the reaction delay.
+- [ ] TEST 7 — Phase completion: requires Command Post destruction plus counterattack resolution.
+- [ ] TEST 8 — Playable area: completion expands from `AREA_PHASE_1` to `AREA_PHASE_2`.
+- [ ] TEST 9 — Solo balance: all P2-preferred attacks fall back to the active player.
+- [ ] TEST 10 — Hard: additional units/T2 reaction force remain pathable and performant.
+- [ ] Reinforcement cap: tracked Forward reinforcement units do not grow without bound.
+- [ ] Factory destruction: destroying Forward production stops recurring reinforcement spawns.
+- [ ] Player departure: remaining active commander can continue.
+
+## Not implemented yet
+
+Stage 2 does not implement:
+
+- the Cybran main base,
+- full west/east sectors,
+- full Phase 2,
+- Phase 3,
+- finale,
+- experimental units,
+- final boss,
+- naval army,
+- strategic missiles,
+- full voiced campaign dialogue.
