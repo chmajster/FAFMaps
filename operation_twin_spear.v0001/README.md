@@ -342,7 +342,7 @@ Two-player strength is therefore approximately 1.5× solo, not 2×. Solo additio
 |---|---:|---:|---|
 | Easy | 0.85 | 1.15 | core defense only, no T2 counter units |
 | Normal | 1.00 | 1.00 | second factory + extra PD |
-| Hard | 1.20 | 0.85 | extra AA + T2 counterattack additions |
+| Hard | 1.20 | 0.85 | extra AA, more T2 pressure, Hard/co-op Central flank and Cybran mobile stealth support |
 
 `GetScaledUnitCount()` uses rounded scaling rather than the old unconditional ceiling, so Easy can actually reduce larger groups.
 
