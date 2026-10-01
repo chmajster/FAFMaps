@@ -868,6 +868,7 @@ local MissionState = {
         Finished = false,
         CompletedPrimaryCount = 0,
         AttackCounter = 0,
+        TargetSelectionCounter = 0,
         GatewayCounter = 0,
         TransportCounter = 0,
         BombardmentCounter = 0,
@@ -2664,6 +2665,7 @@ local function NewPhase3State()
         Finished = false,
         CompletedPrimaryCount = 0,
         AttackCounter = 0,
+        TargetSelectionCounter = 0,
         GatewayCounter = 0,
         TransportCounter = 0,
         BombardmentCounter = 0,
@@ -2969,9 +2971,9 @@ function SelectPhase3AttackTarget()
         return available[1]
     end
 
-    phase.AttackCounter = phase.AttackCounter + 1
+    phase.TargetSelectionCounter = phase.TargetSelectionCounter + 1
     local selected = nil
-    if phase.LastAttackedPlayer and math.mod(phase.AttackCounter, 3) ~= 0 then
+    if phase.LastAttackedPlayer and math.mod(phase.TargetSelectionCounter, 3) ~= 0 then
         for _, target in ipairs(available) do
             if target ~= phase.LastAttackedPlayer then
                 selected = target
@@ -3072,39 +3074,10 @@ function SpawnPhase3Attack()
     return units
 end
 
-local function GetPriorityArtilleryTarget()
-    local phase = MissionState.Phase3
-    if phase.RadarRewardApplied then
-        return nil
-    end
-
-    local targets = GetAvailableWaveTargets()
-    local priorityCategories = {
-        categories.FACTORY,
-        categories.STRUCTURE * categories.ENERGYPRODUCTION,
-        categories.STRUCTURE,
-        categories.MOBILE,
-    }
-
-    for _, armyName in ipairs(targets) do
-        local brain = GetArmyBrain(armyName)
-        local commander = MissionState.PlayerCommanders[armyName]
-        if brain then
-            for _, category in ipairs(priorityCategories) do
-                local units = brain:GetListOfUnits(category, false) or {}
-                for _, unit in ipairs(units) do
-                    if IsUnitAlive(unit) and unit ~= commander then
-                        return unit
-                    end
-                end
-            end
-        end
-    end
-    return nil
-end
-
 local function Phase3ArtilleryThread()
     local phase = MissionState.Phase3
+    local artillery = MissionState.Targets.Phase3Artillery
+
     if not phase.ArtilleryWarningShown then
         phase.ArtilleryWarningShown = true
         ScenarioFramework.Dialogue(Dialogues.Phase3ArtilleryWarning)
@@ -3119,26 +3092,26 @@ local function Phase3ArtilleryThread()
         and not phase.ArtilleryDestroyed
         and not phase.Finished
     do
-        local artillery = MissionState.Targets.Phase3Artillery
         if not IsUnitAlive(artillery) then
             OnPhase3ArtilleryDestroyed()
             return
         end
 
+        -- Use the stock FAF artillery acquisition logic instead of querying the
+        -- player army directly. The scripted layer only controls firing windows,
+        -- so there is no perfect-information ACU/structure sniping and no custom
+        -- damage or weapon blueprint modification.
         phase.BombardmentCounter = phase.BombardmentCounter + 1
-        local target = GetPriorityArtilleryTarget()
-        if target then
+        artillery:SetFireState('Aggressive')
+        Log('ARTILLERY', 'Bombardment window active')
+
+        if not WaitWhilePhase3(22, 'Artillery') then
+            return
+        end
+
+        if IsUnitAlive(artillery) then
+            artillery:SetFireState('HoldFire')
             IssueClearCommands({artillery})
-            IssueAttack({artillery}, target)
-            Log('ARTILLERY', 'Bombardment mission fired')
-            if not WaitWhilePhase3(18, 'Artillery') then
-                return
-            end
-            if IsUnitAlive(artillery) then
-                IssueClearCommands({artillery})
-            end
-        else
-            Log('ARTILLERY', 'No scripted precision target; relying on natural targeting')
         end
 
         if not WaitWhilePhase3(GetPhase3ArtilleryInterval(), 'Artillery') then
