@@ -111,6 +111,19 @@ Active caps by difficulty before co-op scaling:
 
 Co-op applies approximately 1.45–1.50× to Phase 3 caps. Solo gets longer attack/drop intervals. Target selection tracks the previously pressured player and distributes repeated attacks rather than permanently preferring Player1.
 
+## Phase 2 hardening retained
+
+Stage 4 keeps the Phase 2 hardening already present on `main`:
+
+- Phase 2 target selection balances accumulated pressure between active players.
+- West land waves can route to either player via `CHAIN_WEST_ATTACK` or `CHAIN_WEST_ATTACK_TO_P2`.
+- Central Response can route to either player via `CHAIN_CENTRAL_RESPONSE` or `CHAIN_CENTRAL_RESPONSE_P2`.
+- West, East, convoy and Central Response caps are checked against the projected scaled wave size before spawning.
+- Surviving convoy units are transferred into the West active-force pool so they remain covered by the same cap.
+- Solo Phase 2 uses staggered starts and longer recurring intervals to avoid simultaneous two-front pressure.
+- Destroying a Phase 2 command structure closes its recurring subsystem and clears its thread bookkeeping.
+- Hard Phase 2 includes Cybran mobile stealth support.
+
 ## Playable-area progression
 
 - `AREA_PHASE_1 = RECTANGLE(96, 548, 928, 1024)`
