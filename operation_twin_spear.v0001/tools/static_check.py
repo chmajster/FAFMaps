@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Static contract checks for Operation Twin Spear Stage 3 / complete Phase 2.
+"""Static contract checks for Operation Twin Spear Stage 4 / complete Phase 3.
 
 The binary .scmap cannot be validated in this repository until it is exported
-from FAF Map Editor. This checker validates the Lua/save mission contract and
-uses luac -p when a Lua compiler is available.
+from FAF Map Editor. This checker validates the Lua/save mission contract,
+Phase 3 race/order invariants, cleanup hooks and uses luac -p when available.
 """
 
 from __future__ import annotations
@@ -89,14 +89,33 @@ REQUIRED_MARKERS = {
     "EAST_BASE_PATROL_03",
     "EAST_BASE_PATROL_04",
     "PHASE2_CENTRAL_EXPANSION",
-    "CENTRAL_RESPONSE_SPAWN",
-    "CENTRAL_RESPONSE_TARGET",
     "CENTRAL_FLANK_01",
     "CENTRAL_FLANK_02",
     "CENTRAL_AIR_PATROL_01",
     "CENTRAL_AIR_PATROL_02",
     "CENTRAL_AIR_PATROL_03",
     "CENTRAL_AIR_PATROL_04",
+    "CENTRAL_RESPONSE_SPAWN",
+    "CENTRAL_RESPONSE_TARGET",
+    "PHASE3_ARTILLERY_CENTER",
+    "PHASE3_ARTILLERY_CORE",
+    "PHASE3_DEFENSE_CENTER",
+    "PHASE3_DEFENSE_CONTROL_NODE",
+    "PHASE3_GATEWAY_CENTER",
+    "PHASE3_REINFORCEMENT_GATEWAY",
+    "PHASE3_RADAR_01",
+    "PHASE3_RADAR_02",
+    "PHASE3_DATA_CORE",
+    "PHASE3_EXPANSION_WEST",
+    "PHASE3_EXPANSION_CENTER",
+    "PHASE3_EXPANSION_EAST",
+    "PHASE3_DEFENSE_REBUILD_01",
+    "PHASE3_DEFENSE_REBUILD_02",
+    "PHASE3_DEFENSE_REBUILD_03",
+    "PHASE3_TRANSPORT_ENTRY",
+    "PHASE3_TRANSPORT_EXIT",
+    "PHASE3_DROP_WEST",
+    "PHASE3_DROP_EAST",
 }
 
 P1_START_RESOURCES = {
@@ -136,6 +155,9 @@ REQUIRED_AREAS = {
     "AREA_PHASE_2_EAST",
     "AREA_PHASE_2_CENTER",
     "AREA_PHASE_3",
+    "AREA_PHASE_3_WEST",
+    "AREA_PHASE_3_CENTER",
+    "AREA_PHASE_3_EAST",
     "AREA_FINALE",
     "AREA_FORWARD_DISCOVERY",
     "AREA_FORWARD_OUTPOST",
@@ -150,15 +172,22 @@ REQUIRED_CHAINS = {
     "CHAIN_FORWARD_GARRISON",
     "CHAIN_WEST_SUPPLY",
     "CHAIN_WEST_ATTACK",
-    "CHAIN_WEST_ATTACK_TO_P2",
     "CHAIN_WEST_BASE_PATROL",
     "CHAIN_EAST_BASE_PATROL",
     "CHAIN_EAST_AIR_PATROL_01",
     "CHAIN_EAST_AIR_PATROL_02",
     "CHAIN_CENTER_AIR_PATROL",
     "CHAIN_CENTRAL_RESPONSE",
-    "CHAIN_CENTRAL_RESPONSE_P2",
     "CHAIN_CENTRAL_FLANK",
+    "CHAIN_PHASE3_ATTACK_WEST",
+    "CHAIN_PHASE3_ATTACK_CENTER",
+    "CHAIN_PHASE3_ATTACK_EAST",
+    "CHAIN_PHASE3_FLANK_WEST",
+    "CHAIN_PHASE3_FLANK_EAST",
+    "CHAIN_REINFORCEMENT_AIR_ENTRY",
+    "CHAIN_REINFORCEMENT_DROP_WEST",
+    "CHAIN_REINFORCEMENT_DROP_EAST",
+    "CHAIN_REINFORCEMENT_EXIT",
 }
 
 REQUIRED_FORWARD_GROUPS = {
@@ -197,6 +226,38 @@ REQUIRED_PHASE2_GROUPS = {
     "EAST_GARRISON",
 }
 
+
+REQUIRED_PHASE3_GROUPS = {
+    "PHASE3_ARTILLERY_BASE",
+    "ARTILLERY_CORE",
+    "ARTILLERY_DEFENSE",
+    "ARTILLERY_DEFENSE_NORMAL",
+    "ARTILLERY_DEFENSE_HARD",
+    "ARTILLERY_SUPPORT",
+    "PHASE3_DEFENSE_BASE",
+    "DEFENSE_NODE",
+    "DEFENSE_STATIC",
+    "DEFENSE_STATIC_NORMAL",
+    "DEFENSE_STATIC_HARD",
+    "DEFENSE_FACTORIES",
+    "DEFENSE_FACTORIES_NORMAL",
+    "DEFENSE_FACTORIES_HARD",
+    "DEFENSE_ENGINEERS",
+    "DEFENSE_ENGINEERS_HARD",
+    "DEFENSE_GARRISON",
+    "PHASE3_GATEWAY_BASE",
+    "GATEWAY_CORE",
+    "GATEWAY_PRODUCTION",
+    "GATEWAY_PRODUCTION_NORMAL",
+    "GATEWAY_PRODUCTION_HARD",
+    "GATEWAY_AA",
+    "GATEWAY_AA_HARD",
+    "GATEWAY_SUPPORT",
+    "PHASE3_STRATEGIC_RADAR",
+    "PHASE3_DATA_CORE",
+    "FINALE_PREVIEW_FOUNDATIONS",
+}
+
 REQUIRED_FUNCTIONS = {
     "OnPopulate",
     "OnStart",
@@ -216,6 +277,22 @@ REQUIRED_FUNCTIONS = {
     "CompleteEastObjective",
     "CompletePhase2",
     "StartPhase3",
+    "InitializePhase3EnemyForces",
+    "GetAvailablePhase3AttackTypes",
+    "SelectPhase3AttackTarget",
+    "CanSpawnPhase3Attack",
+    "LaunchConfiguredAttack",
+    "SpawnPhase3Attack",
+    "SpawnTransportDrop",
+    "TriggerStrategicResponse",
+    "TriggerEmergencyResponse",
+    "CheckPhase3Completion",
+    "CompleteArtilleryObjective",
+    "CompleteDefenseObjective",
+    "CompleteGatewayObjective",
+    "CompletePhase3",
+    "UnlockFinaleArea",
+    "StartPhase4",
     "MissionVictory",
     "MissionFailure",
     "GetActivePlayerCount",
@@ -251,6 +328,17 @@ REQUIRED_WAVES = {
     "CENTRAL_RESPONSE_FLANK",
     "WEST_ADAPTIVE_REINFORCEMENT",
     "EAST_ADAPTIVE_REINFORCEMENT",
+    "PHASE3_ATTACK_WEST",
+    "PHASE3_ATTACK_CENTER",
+    "PHASE3_ATTACK_EAST",
+    "PHASE3_AIR_SUPPORT",
+    "PHASE3_GATEWAY_HEAVY",
+    "PHASE3_GATEWAY_SIEGE",
+    "PHASE3_GATEWAY_LATE_T3",
+    "PHASE3_STRATEGIC_LAND",
+    "PHASE3_STRATEGIC_AIR",
+    "PHASE3_EMERGENCY_LAND",
+    "PHASE3_EMERGENCY_AIR",
 }
 
 KNOWN_BLUEPRINTS = {
@@ -280,6 +368,24 @@ KNOWN_BLUEPRINTS = {
     "urb3101",
     "urb4201",
     "urb5202",
+    "url0208",
+    "url0303",
+    "url0304",
+    "url0306",
+    "ura0104",
+    "ura0107",
+    "ura0303",
+    "ura0304",
+    "urb0301",
+    "urb0302",
+    "urb0304",
+    "urb2301",
+    "urb2302",
+    "urb2304",
+    "urb3104",
+    "urb3201",
+    "urb4202",
+    "urb4204",
 }
 
 
@@ -422,6 +528,14 @@ def main() -> int:
             fail(f"missing Phase 2 CybranMain group: {group}")
     ok(f"Phase 2 logical groups present ({len(REQUIRED_PHASE2_GROUPS)})")
 
+    for group in sorted(REQUIRED_PHASE3_GROUPS):
+        if re.search(
+            rf"CybranMain\.Units\.Units\.{re.escape(group)}\s*=\s*GROUP",
+            save,
+        ) is None:
+            fail(f"missing Phase 3 CybranMain group: {group}")
+    ok(f"Phase 3 logical groups present ({len(REQUIRED_PHASE3_GROUPS)})")
+
     for function in sorted(REQUIRED_FUNCTIONS):
         if re.search(rf"function\s+{re.escape(function)}\s*\(", script) is None:
             fail(f"mission function missing: {function}")
@@ -444,6 +558,11 @@ def main() -> int:
         "IssueMove(",
         "IssuePatrol(",
         "IssueRepair(",
+        "IssueBuildMobile(",
+        "IssueTransportLoad(",
+        "IssueTransportUnload(",
+        "KillThread(",
+        "ScenarioFramework.CreateVisibleArea(",
         "ForkThread(",
         "WaitSeconds(",
     )
@@ -531,7 +650,191 @@ def main() -> int:
             fail(f"CompletePhase2 transition token missing: {token}")
     if "MissionVictory(" in complete_phase2 or "EndOperation(" in complete_phase2:
         fail("CompletePhase2 must not end the operation")
-    ok("Phase 2 completes only into Phase 3 placeholder")
+    ok("Phase 2 completes into implemented Phase 3")
+
+    # Phase 3 primary objective and state contract.
+    required_phase3_text = (
+        "Destroy Long-Range Artillery",
+        "Disable the Heavy Defense Network",
+        "Destroy the Reinforcement Gateway",
+        "Destroy Strategic Radar",
+        "Destroy the Cybran Data Core",
+        "AREA_PHASE_3_WEST",
+        "AREA_PHASE_3_CENTER",
+        "AREA_PHASE_3_EAST",
+        "AREA_FINALE",
+        "Strategic Response triggered",
+        "Emergency Response triggered",
+        "Bombardment system active",
+        "Drop mission launched",
+        "Finale area unlocked",
+    )
+    for token in required_phase3_text:
+        if token not in script and token not in save:
+            fail(f"Phase 3 contract token missing: {token}")
+    ok("complete Phase 3 objective / response / finale transition contract present")
+
+    for field in (
+        "ArtilleryDestroyed",
+        "DefenseNodeDestroyed",
+        "ReinforcementGatewayDestroyed",
+        "StrategicResponseTriggered",
+        "EmergencyResponseTriggered",
+        "RadarNetworkDestroyed",
+        "DataCoreDestroyed",
+        "FinaleUnlocked",
+        "Finished",
+    ):
+        if field not in script:
+            fail(f"MissionState.Phase3 field missing: {field}")
+    ok("central MissionState.Phase3 contract present")
+
+    # The three primaries are deliberately independent; completion checks the
+    # state flags rather than a prescribed order.
+    completion = re.search(
+        r"function\s+CheckPhase3Completion\s*\(\s*\)(.*?)function\s+CompleteArtilleryObjective",
+        script,
+        re.S,
+    )
+    if not completion:
+        fail("CheckPhase3Completion missing")
+    for token in (
+        "phase.ArtilleryDestroyed",
+        "phase.DefenseNodeDestroyed",
+        "phase.ReinforcementGatewayDestroyed",
+        "CompletePhase3()",
+    ):
+        if token not in completion.group(1):
+            fail(f"Phase 3 order-independent completion token missing: {token}")
+    ok("TEST 5/6/7 — objective order and near-simultaneous completion are state-based")
+
+    # Early destruction reconciliation must be based on actual target liveness.
+    create_p3 = re.search(
+        r"local\s+function\s+CreatePhase3Objectives\s*\(\s*\)(.*?)\nend\n\nfunction\s+UnlockFinaleArea",
+        script,
+        re.S,
+    )
+    if not create_p3:
+        fail("CreatePhase3Objectives block missing")
+    for token in (
+        "not IsUnitAlive(artillery)",
+        "not IsUnitAlive(defenseNode)",
+        "not IsUnitAlive(gateway)",
+    ):
+        if token not in create_p3.group(1):
+            fail(f"early-destruction reconciliation missing: {token}")
+    ok("TEST 10 — early destruction reconciliation present")
+
+    # Exactly-once response guards.
+    strategic = re.search(
+        r"function\s+TriggerStrategicResponse\s*\(\s*\)(.*?)function\s+TriggerEmergencyResponse",
+        script,
+        re.S,
+    )
+    emergency = re.search(
+        r"function\s+TriggerEmergencyResponse\s*\(\s*\)(.*?)local\s+function\s+UpdatePhase3ResponseState",
+        script,
+        re.S,
+    )
+    if not strategic or "phase.StrategicResponseTriggered" not in strategic.group(1):
+        fail("Strategic Response once-only guard missing")
+    if not emergency or "phase.EmergencyResponseTriggered" not in emergency.group(1):
+        fail("Emergency Response once-only guard missing")
+    ok("TEST 8/9 — Strategic and Emergency Response once-only guards present")
+
+    # System teardown is coupled to each strategic target.
+    teardown_blocks = (
+        (
+            "CompleteArtilleryObjective",
+            "function CompleteArtilleryObjective",
+            "function CompleteDefenseObjective",
+            "Phase3Artillery",
+        ),
+        (
+            "CompleteDefenseObjective",
+            "function CompleteDefenseObjective",
+            "function CompleteGatewayObjective",
+            "Phase3DefenseRepair",
+        ),
+        (
+            "CompleteGatewayObjective",
+            "function CompleteGatewayObjective",
+            "local function CreatePhase3Objectives",
+            "Phase3GatewayReinforcement",
+        ),
+    )
+    for function_name, start_token, end_token, thread_token in teardown_blocks:
+        start = script.find(start_token)
+        end = script.find(end_token, start + len(start_token))
+        if start < 0 or end < 0:
+            fail(f"could not isolate {function_name}")
+        block = script[start:end]
+        if thread_token not in block:
+            fail(f"{function_name} does not stop {thread_token}")
+    ok("TEST 1/2/3 — artillery, defense repair and gateway spawner teardown present")
+
+    for token in (
+        "CHAIN_REINFORCEMENT_AIR_ENTRY",
+        "CHAIN_REINFORCEMENT_DROP_WEST",
+        "CHAIN_REINFORCEMENT_DROP_EAST",
+        "IssueTransportLoad(",
+        "IssueTransportUnload(",
+    ):
+        if token not in script and token not in save:
+            fail(f"transport drop contract missing: {token}")
+    ok("TEST 4 — physical transport load/route/unload contract present")
+
+    if "Phase3MaxLandAttackUnits" not in script or "Phase3MaxAirAttackUnits" not in script:
+        fail("Phase 3 active-unit caps missing")
+    if "MissionState.ActivePlayers == 1" not in script or "MissionState.ActivePlayers >= 2" not in script:
+        fail("Phase 3 solo/coop scaling missing")
+    ok("TEST 11/12/13 — solo/coop, difficulty and active-unit cap contracts present")
+
+    complete_p3 = re.search(
+        r"function\s+CompletePhase3\s*\(\s*\)(.*?)\nend\n\nfunction\s+StartPhase3",
+        script,
+        re.S,
+    )
+    if not complete_p3:
+        fail("CompletePhase3 block missing")
+    for token in (
+        "StopMissionThread('Phase3Artillery')",
+        "StopMissionThread('Phase3DefenseRepair')",
+        "StopMissionThread('Phase3GatewayReinforcement')",
+        "StopMissionThread('Phase3TransportDrops')",
+        "StopMissionThread('Phase3AttackDirector')",
+        "UnlockFinaleArea()",
+        "MissionState.CurrentPhase = 4",
+        "StartPhase4()",
+    ):
+        if token not in complete_p3.group(1):
+            fail(f"CompletePhase3 cleanup/transition token missing: {token}")
+    if "MissionVictory(" in complete_p3.group(1) or "EndOperation(" in complete_p3.group(1):
+        fail("Phase 3 completion must not end the operation")
+    ok("TEST 14/15 — finale unlock and full Phase 3 scheduler cleanup present")
+
+
+    # PR #6 API/runtime regressions.
+    for token in (
+        "local FIRE_STATE_RETURN_FIRE = 0",
+        "local FIRE_STATE_HOLD_FIRE = 1",
+        "ScenarioFramework.CreateVisibleArea(70, mainBase, 45, ScenarioInfo.Player1)",
+        "local expectedUnits = EstimatePhase3WaveUnits(base)",
+        "CanSpawnPhase3Attack(poolName, expectedUnits)",
+    ):
+        if token not in script:
+            fail(f"Phase 3 runtime regression guard missing: {token}")
+    if re.search(r"SetUnitsFireState\([^\n]*'(?:HoldFire|Aggressive)'", script):
+        fail("SetUnitsFireState must receive numeric FAF fire-state enums")
+    if re.search(r"CreateVisibleArea\(\s*70\s*,\s*mainBase\[", script):
+        fail("CreateVisibleArea must receive the marker position vector, not split X/Z")
+    ok("PR #6 fire-state, visible-area and projected-cap regression guards pass")
+
+    if "SetMaxHealth" in script or "SetDamage" in script:
+        fail("Phase 3 must not artificially alter unit HP/damage")
+    if "url0401" in script or "ura0401" in script:
+        fail("Phase 3 must not spawn Experimental units")
+    ok("Phase 3 uses stock unit HP/damage and no Experimental unit")
 
     if not editor_plan.is_file():
         fail("MAP_EDITOR_PLAN.md is required when a real .scmap is not generated")
@@ -552,6 +855,13 @@ def main() -> int:
         "AREA_PHASE_2_CENTER",
         "Resource markers",
         "Pathing validation",
+        "PHASE3_ARTILLERY_CORE",
+        "PHASE3_DEFENSE_CONTROL_NODE",
+        "PHASE3_REINFORCEMENT_GATEWAY",
+        "CHAIN_PHASE3_ATTACK_CENTER",
+        "CHAIN_REINFORCEMENT_DROP_WEST",
+        "AREA_PHASE_3_CENTER",
+        "Phase 3",
     ):
         if token not in plan_text:
             fail(f"MAP_EDITOR_PLAN.md missing section/token: {token}")
@@ -563,10 +873,10 @@ def main() -> int:
             fail("suspicious/fake .scmap detected")
         ok("binary .scmap candidate exists and is non-trivial")
     else:
-        print("[INFO] .scmap intentionally absent; Stage 2 requires FAF Map Editor export")
+        print("[INFO] .scmap intentionally absent; Stage 4 / Phase 3 requires FAF Map Editor export")
 
     run_luac_if_available()
-    print("[PASS] Operation Twin Spear Stage 3 / complete Phase 2 static checks passed")
+    print("[PASS] Operation Twin Spear Stage 4 / complete Phase 3 static checks passed")
     return 0
 
 

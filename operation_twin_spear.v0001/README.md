@@ -1,525 +1,196 @@
 # Operation Twin Spear
 
-Stage 3 of a scripted Forged Alliance Forever co-op operation for exactly 1–2 UEF players.
+Stage 4 of a scripted Forged Alliance Forever co-op operation for exactly 1–2 UEF players.
 
-Stage 1 established the mission framework. Stage 2 implemented the southern opening chapter. Stage 3 implements the complete Phase 2: independent Western Logistics and Eastern Air Control fronts, convoy interception, radar disruption, adaptive reinforcement, Central Response, controlled engineer support, performance caps and the transition into a non-victory Phase 3 placeholder.
+Phase 1 contains the UEF insertion, Forward Outpost and counterattack. Phase 2 contains the independent Western Logistics and Eastern Air Control sectors, convoys, air raids and Central Response. Stage 4 now implements the complete Phase 3: T3 escalation, Long-Range Artillery, Heavy Defense Network, Reinforcement Gateway, strategic secondaries, transport drops, Strategic Response, Emergency Response and transition into a finale placeholder.
 
-The binary `operation_twin_spear.scmap` is still intentionally absent. It must be authored/exported with FAF Map Editor from the exact specification in [MAP_EDITOR_PLAN.md](MAP_EDITOR_PLAN.md). Do not create a text file pretending to be an SCMap.
+The binary `operation_twin_spear.scmap` is intentionally absent. It must be authored/exported with FAF Map Editor from `MAP_EDITOR_PLAN.md`; the repository does not use a fake text SCMap.
 
-## Requirements
-
-- Supreme Commander: Forged Alliance with Forged Alliance Forever.
-- A current FAF game build compatible with `FAForever/fa`.
-- FAF Map Editor for terrain, props, passability and binary `.scmap` export.
-- Python 3 for repository contract checks.
-
-The implementation was aligned with current FAF APIs, including:
-
-- `ScenarioUtils.InitializeScenarioArmies()`
-- resource markers consumed by `ScenarioUtils.CreateResources()` during sim initialization
-- `ScenarioFramework.SetPlayableArea(...)`
-- `ScenarioFramework.CreateAreaTrigger(...)`
-- `ScenarioFramework.CreateGroupDeathTrigger(...)`
-- `ScenarioFramework.PlatoonPatrolChain(...)`
-- `ScenarioUtils.ChainToPositions(...)`
-- `Objectives.Kill(...)`
-- `Objectives.Unknown(...)`
-- `ScenarioInfo.Options.Difficulty`
-
-## Installation
-
-The installed directory must be:
+## Phase 3 gameplay flow
 
 ```text
-operation_twin_spear.v0001
+PHASE 1 — Forward Outpost
+          ↓
+PHASE 2 — West Logistics + East Air Control
+          ↓
+AREA_PHASE_3 unlocked
+          ↓
+PHASE 3
+  WEST:   Long-Range Artillery
+  CENTER: Heavy Defense Network
+  EAST:   Reinforcement Gateway
+          ↓
+three primary objectives, any order
+          ↓
+first completed → Strategic Response
+          ↓
+second completed → Emergency Response
+          ↓
+all three completed
+          ↓
+Experimental power-signature tease
+          ↓
+AREA_FINALE unlocked
+          ↓
+Destroy the Cybran Command Complex — placeholder only
 ```
 
-Typical Windows path:
+The three primary objectives are order-independent. Destroying an installation stops only the system owned by that installation. Existing Cybran combat units remain on the field and must be defeated normally.
 
-```text
-C:\Users\<USER>\Documents\My Games\Gas Powered Games\Supreme Commander Forged Alliance\maps\operation_twin_spear.v0001\
-```
+## Phase 3 objectives
 
-FAF fallback vault path:
+Primary:
 
-```text
-C:\ProgramData\FAForever\user\My Games\Gas Powered Games\Supreme Commander Forged Alliance\maps\operation_twin_spear.v0001\
-```
+- Destroy Long-Range Artillery — destroys the T3 Cybran artillery installation and stops scripted bombardment windows.
+- Disable the Heavy Defense Network — destroys the control node and stops bounded repair/rebuild and defense-sector generation.
+- Destroy the Reinforcement Gateway — destroys the strategic staging facility and stops gateway reinforcements plus new transport drops.
 
-Use the maps directory configured by the FAF client if it differs.
+Secondary:
 
-## Stage 3 / Phase 2 gameplay flow
+- Destroy Strategic Radar — increases transport-drop interval and reduces scripted air-response coordination.
+- Destroy the Cybran Data Core — grants temporary vision over part of the future Main Cybran Base.
 
-```text
-Phase 1 complete
-  ↓
-AREA_PHASE_2 unlocked
-  ↓
-PHASE 2 starts
-  ↓
-PRIMARY A: Destroy Western Logistics Base
-PRIMARY B: Destroy Eastern Air Control Base
-  ↓                         ↓
-West land pressure           East air pressure
-Convoys                      Air patrols / raids
-SECONDARY: intercept         SECONDARY: destroy
-supply convoys               radar network
-  \                         /
-   \                       /
-    first primary objective completed
-                ↓
-       CYBRAN CENTRAL RESPONSE
-                ↓
- moderate reinforcement to surviving sector
-                ↓
-       second primary objective completed
-                ↓
-        PHASE 2 complete
-                ↓
-        AREA_PHASE_3 unlocked
-                ↓
-  Phase 3 placeholder objective
-```
+## Technology and AI
 
-West and East are independent. Solo may clear them sequentially; two players may split fronts or attack together. The mission does not require a fixed P1/P2 assignment. Phase 2 attack targeting balances accumulated player pressure, and West land groups have routes to either active player rather than treating P1 as the mandatory western target.
-## Player starts and economy
+Phase 3 is the first phase where T3 is a normal combat component. T2 remains the bulk of most forces. The mission uses stock Cybran units and stock weapon damage/health.
 
-Player 1 starts in the south-west at approximately `(320, 882)`.
+Verified late-game blueprints include:
 
-Player 2 starts in the south-east at approximately `(704, 882)`.
+- `urb2302` — Cybran Heavy Artillery Installation.
+- `url0303` — Loyalist T3 Siege Assault Bot.
+- `url0304` — Cybran T3 Mobile Heavy Artillery.
+- `urb2304` — T3 SAM.
+- `urb0301` / `urb0302` — T3 land/air factories.
+- `urb0304` — Cybran Quantum Gateway.
+- `ura0303` / `ura0304` — T3 air-superiority fighter / strategic bomber.
+- `ura0104` — T2 Cybran transport.
 
-Each player has:
+No Experimental unit is spawned in Stage 4.
 
-- four nearby Mass deposits,
-- one Hydrocarbon deposit,
-- a separate base basin,
-- a three-Mass first expansion,
-- a natural route toward their corresponding river crossing.
+## Artillery behavior
 
-The central expansion has four Mass deposits and one Hydrocarbon. It sits under pressure from the Forward Outpost and becomes the economic reward for clearing the sector.
+The artillery thread controls firing windows and difficulty-dependent cooldown only. Target acquisition remains the normal FAF artillery behavior. The script does not query the player army to snipe ACUs or structures and does not alter artillery damage.
+
+Cooldown baseline:
+
+- Easy: 105 s.
+- Normal: 80 s.
+- Hard: 60 s.
+
+Each firing window lasts about 22 s. Destroying the artillery stops the thread immediately.
+
+## Heavy Defense Network
+
+The center is the heaviest direct land front so far. Static defense combines T2 point defense, T3 AA, tactical missile defense and shields. Normal/Hard add stronger shield/static layers and T3 production.
+
+Defense engineers have a finite rebuild budget:
+
+- Easy: 1 rebuild.
+- Normal: 2 rebuilds.
+- Hard: 3 rebuilds.
+
+Destroying the Control Node stops repair/rebuild logic. Existing turrets and combat units are not deleted.
+
+## Reinforcement Gateway
+
+The Gateway system rotates mixed heavy-land, siege and late-T3 reinforcement packages. Hard receives denser T3 support but no Experimental.
+
+At least one physical transport drop is scheduled during Phase 3. The drop sequence uses real Cybran transports: cargo is spawned, loaded, routed along map chains, unloaded on a flank/rear position and then given combat orders.
+
+## Attack Director and scaling
+
+The existing wave architecture is retained. Phase 3 adds a light director rather than a reactive counter-AI. It considers current phase, available strategic sectors, player count, difficulty and active mission-AI unit caps.
+
+Active caps by difficulty before co-op scaling:
+
+| Difficulty | Land | Air | Reinforcement |
+|---|---:|---:|---:|
+| Easy | 30 | 10 | 18 |
+| Normal | 42 | 16 | 28 |
+| Hard | 54 | 24 | 38 |
+
+Co-op applies approximately 1.45–1.50× to Phase 3 caps. Solo gets longer attack/drop intervals. Target selection tracks the previously pressured player and distributes repeated attacks rather than permanently preferring Player1.
+
+## Phase 2 hardening retained
+
+Stage 4 keeps the Phase 2 hardening already present on `main`:
+
+- Phase 2 target selection balances accumulated pressure between active players.
+- West land waves can route to either player via `CHAIN_WEST_ATTACK` or `CHAIN_WEST_ATTACK_TO_P2`.
+- Central Response can route to either player via `CHAIN_CENTRAL_RESPONSE` or `CHAIN_CENTRAL_RESPONSE_P2`.
+- West, East, convoy and Central Response caps are checked against the projected scaled wave size before spawning.
+- Surviving convoy units are transferred into the West active-force pool so they remain covered by the same cap.
+- Solo Phase 2 uses staggered starts and longer recurring intervals to avoid simultaneous two-front pressure.
+- Destroying a Phase 2 command structure closes its recurring subsystem and clears its thread bookkeeping.
+- Hard Phase 2 includes Cybran mobile stealth support.
 
 ## Playable-area progression
 
-Phase 1:
+- `AREA_PHASE_1 = RECTANGLE(96, 548, 928, 1024)`
+- `AREA_PHASE_2 = RECTANGLE(64, 352, 960, 1024)`
+- `AREA_PHASE_3 = RECTANGLE(32, 176, 992, 1024)`
+- `AREA_PHASE_3_WEST = RECTANGLE(32, 176, 400, 352)`
+- `AREA_PHASE_3_CENTER = RECTANGLE(376, 176, 648, 352)`
+- `AREA_PHASE_3_EAST = RECTANGLE(624, 176, 992, 352)`
+- `AREA_FINALE = RECTANGLE(0, 0, 1024, 1024)` — locked until `CompletePhase3()`.
 
-```text
-AREA_PHASE_1 = RECTANGLE(96, 548, 928, 1024)
-```
+## Phase 3 economy
 
-After Phase 1:
+Three new forward expansion zones exist:
 
-```text
-AREA_PHASE_2 = RECTANGLE(64, 352, 960, 1024)
-```
+- West: 3 Mass.
+- Center: 4 Mass + 1 Hydro; intended forward operating base and strongest economic reward.
+- East: 3 Mass.
 
-Future contracts already exist for:
+This is sufficient to support T3 progression without turning the finale into unlimited mass spam.
 
-- `AREA_PHASE_3`
-- `AREA_FINALE`
+## Debug controls
 
-No Fog-of-War hack is used. The mission uses the FAF operation playable-area mechanism.
+When `DEBUG = true`, `OTS_Debug` exposes:
 
-## Forward Outpost
+- `StartPhase3()`
+- `CompleteArtilleryObjective()`
+- `CompleteDefenseObjective()`
+- `CompleteGatewayObjective()`
+- `TriggerStrategicResponse()`
+- `TriggerEmergencyResponse()`
+- `SpawnTransportDrop()`
+- `SpawnPhase3Attack()`
+- `CompletePhase3()`
+- `UnlockFinaleArea()`
 
-The Forward Outpost is no longer assembled by scattered `CreateUnit()` calls. It is defined as editable groups in `operation_twin_spear_save.lua`.
+Earlier Phase 1/2 debug helpers remain available.
 
-### FORWARD_PRODUCTION
-
-- T1 Cybran Land Factory
-- T1 Cybran Air Factory
-- Normal/Hard: second T1 Land Factory via `FORWARD_PRODUCTION_EXTRA_D2`
-
-### FORWARD_ECONOMY
-
-- 4 × T1 Power Generator
-- 3 × T1 Mass Extractor
-
-### FORWARD_DEFENSE
-
-Easy/core:
-
-- 1 × T1 Point Defense
-- 1 × T1 Anti-Air Turret
-
-Normal adds:
-
-- 1 × T1 Point Defense
-
-Hard adds:
-
-- 2 × additional T1 Anti-Air Turrets
-
-### FORWARD_COMMAND
-
-The objective target is a Cybran T2 Land Factory HQ model (`urb0201`) renamed to:
-
-```text
-Cybran Forward Command Post
-```
-
-It acts as the temporary command/communications asset for this mission chapter.
-
-### FORWARD_RADAR
-
-- 1 × T1 Cybran Radar
-- optional secondary objective target
-
-### FORWARD_GARRISON
-
-- 4 × Mantis / Assault Bot
-- 2 × T1 Mobile AA
-- 1 × T1 Land Scout
-
-## Primary objective
-
-Title:
-
-```text
-Destroy the Forward Command Post
-```
-
-Description:
-
-```text
-Destroy the Cybran forward command facility and secure the southern sector.
-```
-
-The objective is activated when either:
-
-1. an active player enters `AREA_FORWARD_DISCOVERY`, or
-2. the maximum discovery timer expires, or
-3. the Command Post is destroyed early.
-
-Early destruction is explicitly handled. If a rush kills the building before assignment, the objective is created as already completed and the mission advances into the counterattack sequence instead of soft-locking.
-
-## Secondary objective
-
-Title:
-
-```text
-Destroy Cybran Radar
-```
-
-Destroying the radar:
-
-- completes the optional objective,
-- sets the radar disruption mission state,
-- cancels `Phase1_Wave_04` if it has not launched,
-- suppresses later Stage 2 air coordination tied to that wave,
-- displays the UEF message that enemy air coordination has been disrupted.
-
-It is not required for Phase 1 completion.
-
-## Wave system
-
-All opening attacks use the reusable `SpawnAttackWave(config)` path.
-
-The wave system:
-
-- uses centralized configs,
-- spawns one controlled platoon/composition per wave,
-- scales through `GetScaledUnitCount()`,
-- routes land forces through FAF marker chains,
-- chooses only living/active player targets,
-- supports P1/P2 bias without assuming Player1 is always the target,
-- can split the air harassment between both players,
-- suppresses normal waves after the Forward Command Post dies,
-- prevents duplicate non-repeat waves.
-
-### Phase1_Wave_01 — Scout Patrol
-
-Spawn:
-
-- west Forward Outpost spawn
-
-Base composition before scaling:
-
-- 2 × Mantis
-- 1 × T1 Mobile AA
-- 1 × Land Scout
-
-Target bias:
-
-- P1
-
-Approximate normal timing:
-
-- 2 minutes after Phase 1 begins
-
-### Phase1_Wave_02 — Light Land Attack
-
-Base composition:
-
-- 5 × Mantis
-- 1 × T1 Mobile AA
-
-Target bias:
-
-- P1
-
-Approximate normal timing:
-
-- 2.5 minutes after Wave 1
-
-### Phase1_Wave_03 — Mixed Land Attack
-
-Base composition:
-
-- 5 × Mantis
-- 2 × T1 Mobile Artillery
-- 2 × T1 Mobile AA
-
-Target bias:
-
-- P2 when active, otherwise an available player
-
-Approximate normal timing:
-
-- 2 minutes 40 seconds after Wave 2
-
-### Phase1_Wave_04 — Air Harassment
-
-Base composition:
-
-- 2 × Interceptor
-- 1 × T1 Bomber
-
-Behavior:
-
-- split between P1/P2 when both commanders remain active,
-- otherwise attack the surviving player,
-- cancelled if the radar objective is completed before launch.
-
-### Controlled Forward reinforcements
-
-The outpost receives limited reinforcement groups after the opening minutes.
-
-Rules:
-
-- start after ~5 normal minutes,
-- interval ~130 seconds before difficulty/player scaling,
-- maximum tracked active force ≈10 solo / 15 co-op,
-- no infinite spawn loop,
-- stops if Forward production is destroyed,
-- stops if the Forward Command Post is destroyed,
-- recurring thread exits when Phase 1 ends.
-
-## Counterattack
-
-The Command Post does not instantly complete Phase 1.
-
-After destruction:
-
-1. the primary objective is complete,
-2. HQ warns the players,
-3. the mission waits roughly 20 seconds before scaling,
-4. two reaction groups enter from the north,
-5. the phase completes only when the counterattack is destroyed or reduced to 30% of its initial force.
-
-Normal counterattack uses T1 Mantis, artillery and mobile AA.
-
-Hard additionally introduces the first T2 elements:
-
-- Rhino / Heavy Tank (`url0202`)
-- T2 mobile flak where configured (`url0205`)
-
-No artificial HP multiplier is used.
-
-## Scaling
-
-### Player count
-
-| Active players | Enemy unit multiplier | Delay multiplier | Resource multiplier |
-|---:|---:|---:|---:|
-| 1 | 1.00 | 1.00 | 1.00 |
-| 2 | 1.50 | 0.90 | 1.25 |
-
-Two-player strength is therefore approximately 1.5× solo, not 2×. Solo additionally staggers Phase 2 pressure: East air raids/patrols start later and West/East recurring intervals are lengthened so the player is not forced to defend two fronts at the same instant.
-
-### Difficulty
-
-| Difficulty | Unit multiplier | Delay multiplier | Static-base effect |
-|---|---:|---:|---|
-| Easy | 0.85 | 1.15 | core defense only, no T2 counter units |
-| Normal | 1.00 | 1.00 | second factory + extra PD |
-| Hard | 1.20 | 0.85 | extra AA, more T2 pressure, Hard/co-op Central flank and Cybran mobile stealth support |
-
-`GetScaledUnitCount()` uses rounded scaling rather than the old unconditional ceiling, so Easy can actually reduce larger groups.
-
-## Attack routing
-
-Primary chains:
-
-- `CHAIN_FORWARD_TO_P1`
-- `CHAIN_FORWARD_TO_P2`
-- `CHAIN_FORWARD_REINFORCEMENT`
-- `CHAIN_FORWARD_GARRISON`
-
-Land waves receive aggressive-move orders through chain positions. Coordinates are not duplicated throughout mission Lua.
-
-## Debug mode
-
-Normal configuration:
-
-```lua
-local DEBUG = false
-```
-
-Development options:
-
-```lua
-local DEBUG_OPTIONS = {
-    StartPhase1Immediately = false,
-    SkipIntro = false,
-}
-```
-
-When `DEBUG = true`, the script exposes `OTS_Debug`:
-
-```text
-OTS_Debug.SpawnWave(name)
-OTS_Debug.CompleteForwardObjective()
-OTS_Debug.StartCounterattack()
-OTS_Debug.CompletePhase1()
-```
-
-These controls are not created in normal gameplay.
-
-Debug timing also uses the existing accelerated delay behavior.
-
-## Logging
-
-Representative output:
-
-```text
-[OTS][PHASE1] Starting
-[OTS][WAVE] Spawn Phase1_Wave_01
-[OTS][WAVE] Target Player1
-[OTS][OBJECTIVE] Forward Outpost discovered via area trigger: Player1
-[OTS][OBJECTIVE] Forward Command Post destroyed
-[OTS][COUNTER] Starting Cybran counterattack
-[OTS][COUNTER] Counterattack broken: 4/16 units remain
-[OTS][PHASE1] Completed
-[OTS][MAP] Expanding playable area: AREA_PHASE_2
-[OTS][PHASE2] Starting
-[OTS][WEST] Logistics Base active
-[OTS][EAST] Air Control Base active
-[OTS][CONVOY] West convoy spawned
-[OTS][AIR] BOMBER_STRIKE launched
-[OTS][OBJECTIVE] West completed
-[OTS][RESPONSE] Central response triggered
-[OTS][OBJECTIVE] East completed
-[OTS][PHASE2] Both sectors neutralized
-[OTS][MAP] Expanding to AREA_PHASE_3
-[OTS][PHASE3] Placeholder started
-```
-
-No recurring system logs every tick.
-
-## Phase 2 performance guards
-
-West attacks, East air groups, supply convoys and the Central Response use difficulty/player-count active-unit limits. Before spawning, the script calculates the scaled size of the requested composition and suppresses the spawn if the projected active pool would exceed its cap; it does not merely check the count before the wave. Convoy survivors that reach the Western Logistics Base are transferred into the West active-force pool so they remain covered by the same cap.
-
-Destroying the Western command resolves outstanding convoy bookkeeping and stops new convoy/land reinforcement loops. Destroying the Eastern command stops new air-raid and patrol generation. Existing units remain on the map.
-
-## Map editing
-
-Use [MAP_EDITOR_PLAN.md](MAP_EDITOR_PLAN.md) as the authoritative handoff for:
-
-- 20 km terrain composition,
-- exact approximate X/Z coordinates,
-- river geometry,
-- crossings,
-- terrain-height recommendations,
-- resource markers,
-- Forward Outpost placement,
-- Western Logistics Base and Eastern Air Control Base footprints,
-- Phase 2 central valley, ramps and chokepoints,
-- convoy, land-attack, air-patrol and Central Response chains,
-- Phase 2 resource expansion,
-- playable areas,
-- future main-base reservations,
-- props and wreck zones,
-- pathing acceptance tests.
-
-The checked-in `save.lua` is the scripting contract. If FAF Map Editor regenerates it, preserve all required names and group semantics.
-
-## Project structure
-
-```text
-operation_twin_spear.v0001/
-├── MAP_EDITOR_PLAN.md
-├── README.md
-├── operation_twin_spear_operation.lua
-├── operation_twin_spear_save.lua
-├── operation_twin_spear_scenario.lua
-├── operation_twin_spear_script.lua
-├── operation_twin_spear.scmap        # manual FAF Map Editor export; not yet present
-└── tools/
-    └── static_check.py
-```
-
-## Static testing
+## Static verification
 
 Run:
 
 ```bash
-python3 tools/static_check.py
+python3 operation_twin_spear.v0001/tools/static_check.py
 ```
 
-CI additionally installs Lua and executes `luac -p` for each Lua file.
-
-Static checks cover:
-
-- campaign/co-op scenario shape,
-- concrete marker declarations rather than arbitrary name occurrences,
-- start resource contract,
-- named areas,
-- chains,
-- Forward Outpost groups,
-- Western/Eastern Phase 2 groups,
-- required Stage 3 / Phase 2 lifecycle functions,
-- reusable Phase 1 and Phase 2 wave definitions,
-- current FAF API calls,
-- known/verified unit blueprint allow-list,
-- explicit rejection of the legacy forbidden `url0106` reference,
-- guarded Player2 access,
-- central `MissionState.Phase2` fields,
-- two-sector completion and non-victory Phase 3 transition,
-- presence of the Map Editor handoff.
+The checker validates markers, areas, chains, logical groups, verified blueprints, Phase 3 state, objective-order independence, early-destruction reconciliation, once-only responses, transport contract, unit caps, cleanup and non-victory finale transition. If `luac` exists, all Lua files are syntax-checked as well.
 
 ## Runtime acceptance checklist
 
-These tests require the real binary map and FAF runtime.
+The following dynamic tests require the real binary map and FAF runtime:
 
-- [ ] TEST 1 — Solo West first: West completes; East remains active.
-- [ ] TEST 2 — Solo East first: East completes; West remains active.
-- [ ] TEST 3 — Co-op simultaneous: both callbacks resolve without race conditions.
-- [ ] TEST 4 — Central Response: triggers exactly once after the first primary objective.
-- [ ] TEST 5 — West convoy arrival: arrival is detected and the base receives a bounded defensive bonus.
-- [ ] TEST 6 — Convoy destroyed: no arrival bonus; destruction counter increments once.
-- [ ] TEST 7 — East radar secondary: all radars destroyed reduces raid cadence and patrol coverage.
-- [ ] TEST 8 — West early destruction: destroying the command before Phase 2 objective assignment does not soft-lock.
-- [ ] TEST 9 — East early destruction: same early-destruction guarantee.
-- [ ] TEST 10 — Phase completion: requires both `WestCompleted` and `EastCompleted`.
-- [ ] TEST 11 — Threads: West production/convoys and East air/patrol generators stop after their sector/phase ends.
-- [ ] TEST 12 — Solo balance: no simultaneous two-front defense requirement.
-- [ ] TEST 13 — Co-op scaling: two players increase pressure sub-linearly, not 2×.
-- [ ] TEST 14 — Performance: active West/East/convoy/Central Response unit caps hold.
-- [ ] Engineer support: repairs/patrol behavior never rebuilds objective structures.
-- [ ] Phase 3 transition: `AREA_PHASE_3` opens and no victory is fired.
+- [ ] TEST 1 — Artillery starts firing; destroying it stops bombardment.
+- [ ] TEST 2 — Defense repair/rebuild works; destroying the Control Node stops it.
+- [ ] TEST 3 — Gateway reinforcements stop after Gateway destruction.
+- [ ] TEST 4 — Transport spawns, loads, follows its route, unloads and cargo receives orders.
+- [ ] TEST 5 — Objective order A→B→C completes Phase 3.
+- [ ] TEST 6 — Objective order C→A→B completes Phase 3.
+- [ ] TEST 7 — Near-simultaneous destruction does not duplicate response/completion.
+- [ ] TEST 8 — Strategic Response triggers exactly once after the first primary.
+- [ ] TEST 9 — Emergency Response triggers exactly once after the second primary.
+- [ ] TEST 10 — Early target destruction reconciles correctly on Phase 3 start.
+- [ ] TEST 11 — Solo cadence does not require three simultaneous defensive fronts.
+- [ ] TEST 12 — Co-op pressure is distributed across active players.
+- [ ] TEST 13 — Hard T3 pressure remains inside active-unit caps.
+- [ ] TEST 14 — all three primaries unlock `AREA_FINALE`.
+- [ ] TEST 15 — all Phase 3 scheduler/repair/reinforcement threads are stopped on completion.
 
 ## Not implemented yet
 
-Stage 3 does not implement:
-
-- the final Cybran main-base assault,
-- full Phase 3 mission logic,
-- experimental units,
-- strategic nukes,
-- final boss,
-- full naval war,
-- final assault/outro,
-- full voiced campaign dialogue.
-
-The Phase 3 entry exists only as terrain expansion, transition dialogue and a placeholder primary objective.
+Stage 4 intentionally does not implement the final Main Cybran Base assault, Experimental boss, strategic nuclear war, final enemy ACU, final survival/escape sequence, outro or ending cinematics. The Main Base preview contract and final primary placeholder only prepare the next stage.
