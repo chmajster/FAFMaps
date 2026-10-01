@@ -247,22 +247,58 @@ Stage 1 alias markers remain in `save.lua` for compatibility. Do not delete them
 | `WEST_FACTORY_01` | Blank | 272 | 426 | 2 | West factory footprint |
 | `WEST_FACTORY_02` | Blank | 328 | 426 | 2 | West factory footprint |
 | `WEST_SUPPLY_ENTRY` | Blank | 250 | 354 | 2 | Convoy entry from north |
+| `WEST_SUPPLY_01` | Blank | 258 | 372 | 2 | Convoy route node |
+| `WEST_SUPPLY_02` | Blank | 278 | 394 | 2 | Convoy route node |
 | `WEST_SUPPLY_EXIT` | Blank | 300 | 410 | 2 | Convoy arrival / bonus trigger |
 | `WEST_ATTACK_01` | Blank | 320 | 448 | 2 | West attack route node |
 | `WEST_ATTACK_02` | Blank | 350 | 492 | 2 | West attack route node |
 | `WEST_ATTACK_03` | Blank | 390 | 540 | 2 | West attack route node |
+| `WEST_PATROL_01` | Blank | 252 | 414 | 2 | West base patrol / engineer node |
+| `WEST_PATROL_02` | Blank | 300 | 370 | 2 | West base patrol / engineer node |
+| `WEST_PATROL_03` | Blank | 348 | 414 | 2 | West base patrol / engineer node |
+| `WEST_PATROL_04` | Blank | 300 | 486 | 2 | West base patrol / engineer node |
 | `EAST_BASE_CENTER` | Blank | 724 | 420 | 2 | Eastern Air Control Base center |
 | `EAST_AIR_CONTROL_COMMAND` | Blank | 724 | 392 | 2 | East primary objective anchor |
 | `EAST_AIR_FACTORY_01` | Blank | 690 | 430 | 2 | East air-factory footprint |
 | `EAST_AIR_FACTORY_02` | Blank | 758 | 430 | 2 | East air-factory footprint |
+| `EAST_AIR_ATTACK_SPAWN` | Blank | 724 | 442 | 2 | Air raid / patrol spawn |
 | `EAST_RADAR_01` | Blank | 664 | 388 | 2 | Radar network objective |
 | `EAST_RADAR_02` | Blank | 724 | 368 | 2 | Radar network objective |
 | `EAST_RADAR_03` | Blank | 784 | 388 | 2 | Radar network objective |
+| `EAST_PATROL_01A` | Blank | 620 | 380 | 2 | East air patrol route 01 |
+| `EAST_PATROL_01B` | Blank | 690 | 352 | 2 | East air patrol route 01 |
+| `EAST_PATROL_01C` | Blank | 790 | 374 | 2 | East air patrol route 01 |
+| `EAST_PATROL_01D` | Blank | 760 | 470 | 2 | East air patrol route 01 |
+| `EAST_PATROL_02A` | Blank | 640 | 458 | 2 | East air patrol route 02 |
+| `EAST_PATROL_02B` | Blank | 710 | 500 | 2 | East air patrol route 02 |
+| `EAST_PATROL_02C` | Blank | 824 | 456 | 2 | East air patrol route 02 |
+| `EAST_PATROL_02D` | Blank | 806 | 390 | 2 | East air patrol route 02 |
+| `EAST_BASE_PATROL_01` | Blank | 670 | 420 | 2 | East base patrol / engineer node |
+| `EAST_BASE_PATROL_02` | Blank | 724 | 360 | 2 | East base patrol / engineer node |
+| `EAST_BASE_PATROL_03` | Blank | 778 | 420 | 2 | East base patrol / engineer node |
+| `EAST_BASE_PATROL_04` | Blank | 724 | 492 | 2 | East base patrol / engineer node |
+| `PHASE2_CENTRAL_EXPANSION` | Blank | 512 | 470 | 2 | Optional Phase 2 forward-base location |
 | `CENTRAL_RESPONSE_SPAWN` | Blank | 512 | 354 | 2 | Central Response spawn |
 | `CENTRAL_RESPONSE_TARGET` | Blank | 512 | 520 | 2 | Central Response staging/engagement point |
-| `PHASE2_CENTRAL_EXPANSION` | Blank | 512 | 470 | 2 | Optional Phase 2 forward-base location |
+| `CENTRAL_FLANK_01` | Blank | 570 | 388 | 2 | Hard/co-op Central Response flank |
+| `CENTRAL_FLANK_02` | Blank | 590 | 460 | 2 | Hard/co-op Central Response flank |
+| `CENTRAL_AIR_PATROL_01` | Blank | 450 | 410 | 2 | Central air patrol loop |
+| `CENTRAL_AIR_PATROL_02` | Blank | 512 | 370 | 2 | Central air patrol loop |
+| `CENTRAL_AIR_PATROL_03` | Blank | 574 | 410 | 2 | Central air patrol loop |
+| `CENTRAL_AIR_PATROL_04` | Blank | 512 | 510 | 2 | Central air patrol loop |
+| `PHASE2_CENTER_MASS_01` | Mass | 474 | 474 | 2 | Central expansion economy |
+| `PHASE2_CENTER_MASS_02` | Mass | 498 | 454 | 2 | Central expansion economy |
+| `PHASE2_CENTER_MASS_03` | Mass | 526 | 454 | 2 | Central expansion economy |
+| `PHASE2_CENTER_MASS_04` | Mass | 550 | 474 | 2 | Central expansion economy |
+| `PHASE2_CENTER_HYDRO_01` | Hydrocarbon | 512 | 494 | 2 | Central expansion economy |
+| `WEST_MASS_01` | Mass | 252 | 430 | 2 | Western base occupied extractor point |
+| `WEST_MASS_02` | Mass | 348 | 430 | 2 | Western base occupied extractor point |
+| `WEST_MASS_03` | Mass | 300 | 478 | 2 | Western base occupied extractor point |
+| `EAST_MASS_01` | Mass | 676 | 438 | 2 | Eastern base occupied extractor point |
+| `EAST_MASS_02` | Mass | 772 | 438 | 2 | Eastern base occupied extractor point |
+| `EAST_MASS_03` | Mass | 724 | 484 | 2 | Eastern base occupied extractor point |
 
-The additional patrol and intermediate route markers in `save.lua` are authoritative. Their coordinates may be adjusted in FAF Map Editor only if the corresponding route remains semantically equivalent and the Lua/save contract is updated with the same names.
+All Phase 2 markers above are part of the handoff contract. Coordinates may be adjusted in FAF Map Editor only if the corresponding route/base remains semantically equivalent and `save.lua`, Lua references and this table are updated together.
 
 
 ## 5. Resource markers
