@@ -1006,6 +1006,17 @@ Scenario = {
                 'WEST_ATTACK_02',
                 'WEST_ATTACK_03',
                 'CROSSING_WEST',
+                'P1_ATTACK_TARGET',
+            },
+        },
+        CHAIN_WEST_ATTACK_TO_P2 = {
+            Markers = {
+                'WEST_ATTACK_01',
+                'WEST_ATTACK_02',
+                'WEST_ATTACK_03',
+                'CENTRAL_RESPONSE_TARGET',
+                'CROSSING_EAST',
+                'P2_ATTACK_TARGET',
             },
         },
         CHAIN_WEST_BASE_PATROL = {
@@ -1055,6 +1066,15 @@ Scenario = {
                 'CENTRAL_RESPONSE_SPAWN',
                 'CENTRAL_RESPONSE_TARGET',
                 'CROSSING_CENTER_OPTIONAL',
+                'P1_ATTACK_TARGET',
+            },
+        },
+        CHAIN_CENTRAL_RESPONSE_P2 = {
+            Markers = {
+                'CENTRAL_RESPONSE_SPAWN',
+                'CENTRAL_RESPONSE_TARGET',
+                'CROSSING_EAST',
+                'P2_ATTACK_TARGET',
             },
         },
         CHAIN_CENTRAL_FLANK = {
