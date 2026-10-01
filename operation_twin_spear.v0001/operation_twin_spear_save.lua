@@ -332,6 +332,14 @@ Scenario = {
                 'FORWARD_OUTPOST_CENTER',
             },
         },
+        CHAIN_FORWARD_GARRISON = {
+            Markers = {
+                'CYBRAN_FORWARD_SPAWN_WEST',
+                'FORWARD_COMMAND_POST',
+                'CYBRAN_FORWARD_SPAWN_EAST',
+                'FORWARD_OUTPOST_CENTER',
+            },
+        },
 
         -- Stage 1 compatibility chains
         ATTACK_PATH_WEST = {
