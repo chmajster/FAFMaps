@@ -788,16 +788,6 @@ local function ClearPhase2ThreadHandles(side)
     end
 end
 
-local function ClosePhase2SecondaryObjectives()
-    local phase = MissionState.Phase2
-    if not phase.WestReinforcementReduced then
-        SetObjectiveManualResultIfActive(MissionState.Objectives.Phase2Convoys, false)
-    end
-    if not phase.RadarNetworkDestroyed then
-        SetObjectiveManualResultIfActive(MissionState.Objectives.Phase2RadarNetwork, false)
-    end
-end
-
 local function GetMarkerPosition(markerName)
     local marker = ScenarioUtils.GetMarker(markerName)
     if not marker or not marker.position then
@@ -980,6 +970,16 @@ end
 local function SetObjectiveManualResultIfActive(objective, result)
     if objective and objective.Active then
         objective:ManualResult(result)
+    end
+end
+
+local function ClosePhase2SecondaryObjectives()
+    local phase = MissionState.Phase2
+    if not phase.WestReinforcementReduced then
+        SetObjectiveManualResultIfActive(MissionState.Objectives.Phase2Convoys, false)
+    end
+    if not phase.RadarNetworkDestroyed then
+        SetObjectiveManualResultIfActive(MissionState.Objectives.Phase2RadarNetwork, false)
     end
 end
 
