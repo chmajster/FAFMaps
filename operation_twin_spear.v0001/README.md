@@ -81,7 +81,7 @@ supply convoys               radar network
   Phase 3 placeholder objective
 ```
 
-West and East are independent. Solo may clear them sequentially; two players may split fronts or attack together. The mission does not require a fixed P1/P2 assignment.
+West and East are independent. Solo may clear them sequentially; two players may split fronts or attack together. The mission does not require a fixed P1/P2 assignment. Phase 2 attack targeting balances accumulated player pressure, and West land groups have routes to either active player rather than treating P1 as the mandatory western target.
 ## Player starts and economy
 
 Player 1 starts in the south-west at approximately `(320, 882)`.
@@ -334,7 +334,7 @@ No artificial HP multiplier is used.
 | 1 | 1.00 | 1.00 | 1.00 |
 | 2 | 1.50 | 0.90 | 1.25 |
 
-Two-player strength is therefore approximately 1.5× solo, not 2×.
+Two-player strength is therefore approximately 1.5× solo, not 2×. Solo additionally staggers Phase 2 pressure: East air raids/patrols start later and West/East recurring intervals are lengthened so the player is not forced to defend two fronts at the same instant.
 
 ### Difficulty
 
@@ -342,7 +342,7 @@ Two-player strength is therefore approximately 1.5× solo, not 2×.
 |---|---:|---:|---|
 | Easy | 0.85 | 1.15 | core defense only, no T2 counter units |
 | Normal | 1.00 | 1.00 | second factory + extra PD |
-| Hard | 1.20 | 0.85 | extra AA + T2 counterattack additions |
+| Hard | 1.20 | 0.85 | extra AA, more T2 pressure, Hard/co-op Central flank and Cybran mobile stealth support |
 
 `GetScaledUnitCount()` uses rounded scaling rather than the old unconditional ceiling, so Easy can actually reduce larger groups.
 
@@ -415,6 +415,12 @@ Representative output:
 ```
 
 No recurring system logs every tick.
+
+## Phase 2 performance guards
+
+West attacks, East air groups, supply convoys and the Central Response use difficulty/player-count active-unit limits. Before spawning, the script calculates the scaled size of the requested composition and suppresses the spawn if the projected active pool would exceed its cap; it does not merely check the count before the wave. Convoy survivors that reach the Western Logistics Base are transferred into the West active-force pool so they remain covered by the same cap.
+
+Destroying the Western command resolves outstanding convoy bookkeeping and stops new convoy/land reinforcement loops. Destroying the Eastern command stops new air-raid and patrol generation. Existing units remain on the map.
 
 ## Map editing
 

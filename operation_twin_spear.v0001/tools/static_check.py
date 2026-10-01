@@ -58,10 +58,16 @@ REQUIRED_MARKERS = {
     "WEST_FACTORY_01",
     "WEST_FACTORY_02",
     "WEST_SUPPLY_ENTRY",
+    "WEST_SUPPLY_01",
+    "WEST_SUPPLY_02",
     "WEST_SUPPLY_EXIT",
     "WEST_ATTACK_01",
     "WEST_ATTACK_02",
     "WEST_ATTACK_03",
+    "WEST_PATROL_01",
+    "WEST_PATROL_02",
+    "WEST_PATROL_03",
+    "WEST_PATROL_04",
     "EAST_BASE_CENTER",
     "EAST_AIR_CONTROL_COMMAND",
     "EAST_AIR_FACTORY_01",
@@ -70,9 +76,27 @@ REQUIRED_MARKERS = {
     "EAST_RADAR_01",
     "EAST_RADAR_02",
     "EAST_RADAR_03",
+    "EAST_PATROL_01A",
+    "EAST_PATROL_01B",
+    "EAST_PATROL_01C",
+    "EAST_PATROL_01D",
+    "EAST_PATROL_02A",
+    "EAST_PATROL_02B",
+    "EAST_PATROL_02C",
+    "EAST_PATROL_02D",
+    "EAST_BASE_PATROL_01",
+    "EAST_BASE_PATROL_02",
+    "EAST_BASE_PATROL_03",
+    "EAST_BASE_PATROL_04",
     "PHASE2_CENTRAL_EXPANSION",
     "CENTRAL_RESPONSE_SPAWN",
     "CENTRAL_RESPONSE_TARGET",
+    "CENTRAL_FLANK_01",
+    "CENTRAL_FLANK_02",
+    "CENTRAL_AIR_PATROL_01",
+    "CENTRAL_AIR_PATROL_02",
+    "CENTRAL_AIR_PATROL_03",
+    "CENTRAL_AIR_PATROL_04",
 }
 
 P1_START_RESOURCES = {
@@ -89,6 +113,20 @@ P2_START_RESOURCES = {
     "P2_MASS_03": "MassMarker",
     "P2_MASS_04": "MassMarker",
     "P2_HYDRO_01": "HydroMarker",
+}
+
+PHASE2_RESOURCES = {
+    "PHASE2_CENTER_MASS_01": "MassMarker",
+    "PHASE2_CENTER_MASS_02": "MassMarker",
+    "PHASE2_CENTER_MASS_03": "MassMarker",
+    "PHASE2_CENTER_MASS_04": "MassMarker",
+    "PHASE2_CENTER_HYDRO_01": "HydroMarker",
+    "WEST_MASS_01": "MassMarker",
+    "WEST_MASS_02": "MassMarker",
+    "WEST_MASS_03": "MassMarker",
+    "EAST_MASS_01": "MassMarker",
+    "EAST_MASS_02": "MassMarker",
+    "EAST_MASS_03": "MassMarker",
 }
 
 REQUIRED_AREAS = {
@@ -112,12 +150,14 @@ REQUIRED_CHAINS = {
     "CHAIN_FORWARD_GARRISON",
     "CHAIN_WEST_SUPPLY",
     "CHAIN_WEST_ATTACK",
+    "CHAIN_WEST_ATTACK_TO_P2",
     "CHAIN_WEST_BASE_PATROL",
     "CHAIN_EAST_BASE_PATROL",
     "CHAIN_EAST_AIR_PATROL_01",
     "CHAIN_EAST_AIR_PATROL_02",
     "CHAIN_CENTER_AIR_PATROL",
     "CHAIN_CENTRAL_RESPONSE",
+    "CHAIN_CENTRAL_RESPONSE_P2",
     "CHAIN_CENTRAL_FLANK",
 }
 
@@ -183,6 +223,11 @@ REQUIRED_FUNCTIONS = {
     "GetScaledDelay",
     "GetScaledResourceMultiplier",
     "SpawnAttackWave",
+    "GetWaveScaledUnitCount",
+    "CanSpawnPhase2Wave",
+    "ResolveOutstandingWestConvoys",
+    "ClearPhase2ThreadHandles",
+    "ClosePhase2SecondaryObjectives",
     "ActivateForwardObjective",
     "StartCounterattack",
 }
@@ -216,6 +261,7 @@ KNOWN_BLUEPRINTS = {
     "url0107",
     "url0202",
     "url0205",
+    "url0306",
     "url0105",
     "ura0101",
     "ura0102",
@@ -352,6 +398,11 @@ def main() -> int:
             fail(f"{name} must be declared with {marker_type}")
     ok("each player has exactly the required 4 Mass + 1 Hydro start contract")
 
+    for name, marker_type in PHASE2_RESOURCES.items():
+        if markers.get(name) != marker_type:
+            fail(f"{name} must be declared with {marker_type}")
+    ok("Phase 2 center and support-base resource markers are typed correctly")
+
     require_named_tables(save, REQUIRED_AREAS, "areas")
     require_named_tables(save, REQUIRED_CHAINS, "chains")
 
@@ -441,6 +492,12 @@ def main() -> int:
         "AREA_PHASE_1",
         "AREA_PHASE_2",
         "AREA_PHASE_3",
+        "CHAIN_WEST_ATTACK_TO_P2",
+        "CHAIN_CENTRAL_RESPONSE_P2",
+        "GetDenseUnitPosition",
+        "CanSpawnPhase2Wave",
+        "ResolveOutstandingWestConvoys",
+        "MissionState.ActivePlayers == 1",
         "Central response triggered",
         "West completed",
         "East completed",
@@ -469,7 +526,7 @@ def main() -> int:
         script,
         re.S,
     ).group(1)
-    for token in ("AREA_PHASE_3", "MissionState.CurrentPhase = 3", "StartPhase3()"):
+    for token in ("ClosePhase2SecondaryObjectives()", "AREA_PHASE_3", "MissionState.CurrentPhase = 3", "StartPhase3()"):
         if token not in complete_phase2:
             fail(f"CompletePhase2 transition token missing: {token}")
     if "MissionVictory(" in complete_phase2 or "EndOperation(" in complete_phase2:
@@ -486,7 +543,9 @@ def main() -> int:
         "WEST_LOGISTICS_COMMAND",
         "EAST_AIR_CONTROL_COMMAND",
         "CHAIN_WEST_SUPPLY",
+        "CHAIN_WEST_ATTACK_TO_P2",
         "CHAIN_EAST_AIR_PATROL_01",
+        "CHAIN_CENTRAL_RESPONSE_P2",
         "CENTRAL_RESPONSE_SPAWN",
         "AREA_PHASE_2_WEST",
         "AREA_PHASE_2_EAST",
