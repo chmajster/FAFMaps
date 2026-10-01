@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static contract checks for Operation Twin Spear Stage 2.
+"""Static contract checks for Operation Twin Spear Stage 3 / complete Phase 2.
 
 The binary .scmap cannot be validated in this repository until it is exported
 from FAF Map Editor. This checker validates the Lua/save mission contract and
@@ -53,6 +53,26 @@ REQUIRED_MARKERS = {
     "EAST_SECTOR_FUTURE",
     "DEFENSE_LINE_CENTER",
     "CYBRAN_MAIN_BASE",
+    "WEST_BASE_CENTER",
+    "WEST_LOGISTICS_COMMAND",
+    "WEST_FACTORY_01",
+    "WEST_FACTORY_02",
+    "WEST_SUPPLY_ENTRY",
+    "WEST_SUPPLY_EXIT",
+    "WEST_ATTACK_01",
+    "WEST_ATTACK_02",
+    "WEST_ATTACK_03",
+    "EAST_BASE_CENTER",
+    "EAST_AIR_CONTROL_COMMAND",
+    "EAST_AIR_FACTORY_01",
+    "EAST_AIR_FACTORY_02",
+    "EAST_AIR_ATTACK_SPAWN",
+    "EAST_RADAR_01",
+    "EAST_RADAR_02",
+    "EAST_RADAR_03",
+    "PHASE2_CENTRAL_EXPANSION",
+    "CENTRAL_RESPONSE_SPAWN",
+    "CENTRAL_RESPONSE_TARGET",
 }
 
 P1_START_RESOURCES = {
@@ -74,6 +94,9 @@ P2_START_RESOURCES = {
 REQUIRED_AREAS = {
     "AREA_PHASE_1",
     "AREA_PHASE_2",
+    "AREA_PHASE_2_WEST",
+    "AREA_PHASE_2_EAST",
+    "AREA_PHASE_2_CENTER",
     "AREA_PHASE_3",
     "AREA_FINALE",
     "AREA_FORWARD_DISCOVERY",
@@ -87,9 +110,18 @@ REQUIRED_CHAINS = {
     "CHAIN_FORWARD_TO_P2",
     "CHAIN_FORWARD_REINFORCEMENT",
     "CHAIN_FORWARD_GARRISON",
+    "CHAIN_WEST_SUPPLY",
+    "CHAIN_WEST_ATTACK",
+    "CHAIN_WEST_BASE_PATROL",
+    "CHAIN_EAST_BASE_PATROL",
+    "CHAIN_EAST_AIR_PATROL_01",
+    "CHAIN_EAST_AIR_PATROL_02",
+    "CHAIN_CENTER_AIR_PATROL",
+    "CHAIN_CENTRAL_RESPONSE",
+    "CHAIN_CENTRAL_FLANK",
 }
 
-REQUIRED_GROUPS = {
+REQUIRED_FORWARD_GROUPS = {
     "FORWARD_PRODUCTION",
     "FORWARD_PRODUCTION_EXTRA_D2",
     "FORWARD_ECONOMY",
@@ -99,6 +131,30 @@ REQUIRED_GROUPS = {
     "FORWARD_COMMAND",
     "FORWARD_RADAR",
     "FORWARD_GARRISON",
+}
+
+REQUIRED_PHASE2_GROUPS = {
+    "WEST_PRODUCTION_BASE",
+    "WEST_PRODUCTION_NORMAL",
+    "WEST_PRODUCTION_HARD",
+    "WEST_ECONOMY",
+    "WEST_DEFENSE_BASE",
+    "WEST_DEFENSE_NORMAL",
+    "WEST_DEFENSE_HARD",
+    "WEST_COMMAND",
+    "WEST_ENGINEERS",
+    "WEST_GARRISON",
+    "EAST_PRODUCTION_BASE",
+    "EAST_PRODUCTION_NORMAL",
+    "EAST_PRODUCTION_HARD",
+    "EAST_ECONOMY",
+    "EAST_DEFENSE_BASE",
+    "EAST_DEFENSE_NORMAL",
+    "EAST_DEFENSE_HARD",
+    "EAST_COMMAND",
+    "EAST_RADAR_NETWORK",
+    "EAST_ENGINEERS",
+    "EAST_GARRISON",
 }
 
 REQUIRED_FUNCTIONS = {
@@ -111,6 +167,15 @@ REQUIRED_FUNCTIONS = {
     "StartPhase1",
     "CompletePhase1",
     "StartPhase2",
+    "InitializePhase2EnemyForces",
+    "SpawnWestConvoy",
+    "SpawnEastAirRaid",
+    "TriggerCentralResponse",
+    "CheckPhase2Completion",
+    "CompleteWestObjective",
+    "CompleteEastObjective",
+    "CompletePhase2",
+    "StartPhase3",
     "MissionVictory",
     "MissionFailure",
     "GetActivePlayerCount",
@@ -129,6 +194,18 @@ REQUIRED_WAVES = {
     "Phase1_Wave_04",
     "Counterattack_West",
     "Counterattack_East",
+    "WEST_WAVE_LIGHT",
+    "WEST_WAVE_MECH",
+    "WEST_WAVE_ARTILLERY",
+    "AIR_SCOUT",
+    "INTERCEPTOR_PATROL",
+    "BOMBER_STRIKE",
+    "GUNSHIP_RAID",
+    "MIXED_AIR_ATTACK",
+    "CENTRAL_RESPONSE_MAIN",
+    "CENTRAL_RESPONSE_FLANK",
+    "WEST_ADAPTIVE_REINFORCEMENT",
+    "EAST_ADAPTIVE_REINFORCEMENT",
 }
 
 KNOWN_BLUEPRINTS = {
@@ -139,16 +216,24 @@ KNOWN_BLUEPRINTS = {
     "url0107",
     "url0202",
     "url0205",
+    "url0105",
+    "ura0101",
     "ura0102",
     "ura0103",
+    "ura0203",
     "urb0101",
     "urb0102",
     "urb0201",
+    "urb0202",
     "urb1101",
     "urb1103",
+    "urb1105",
+    "urb1106",
     "urb2101",
     "urb2104",
     "urb3101",
+    "urb4201",
+    "urb5202",
 }
 
 
@@ -270,13 +355,21 @@ def main() -> int:
     require_named_tables(save, REQUIRED_AREAS, "areas")
     require_named_tables(save, REQUIRED_CHAINS, "chains")
 
-    for group in sorted(REQUIRED_GROUPS):
+    for group in sorted(REQUIRED_FORWARD_GROUPS):
         if re.search(
             rf"CybranOutpost\.Units\.Units\.{re.escape(group)}\s*=\s*GROUP",
             save,
         ) is None:
             fail(f"missing Forward Outpost group: {group}")
-    ok(f"Forward Outpost logical groups present ({len(REQUIRED_GROUPS)})")
+    ok(f"Forward Outpost logical groups present ({len(REQUIRED_FORWARD_GROUPS)})")
+
+    for group in sorted(REQUIRED_PHASE2_GROUPS):
+        if re.search(
+            rf"CybranMain\.Units\.Units\.{re.escape(group)}\s*=\s*GROUP",
+            save,
+        ) is None:
+            fail(f"missing Phase 2 CybranMain group: {group}")
+    ok(f"Phase 2 logical groups present ({len(REQUIRED_PHASE2_GROUPS)})")
 
     for function in sorted(REQUIRED_FUNCTIONS):
         if re.search(rf"function\s+{re.escape(function)}\s*\(", script) is None:
@@ -297,6 +390,9 @@ def main() -> int:
         "ScenarioUtils.ChainToPositions(",
         "Objectives.Kill(",
         "Objectives.Unknown(",
+        "IssueMove(",
+        "IssuePatrol(",
+        "IssueRepair(",
         "ForkThread(",
         "WaitSeconds(",
     )
@@ -330,22 +426,55 @@ def main() -> int:
 
     phase2 = extract_start_phase2(script)
     if "MissionVictory(" in phase2 or "EndOperation(" in phase2:
-        fail("Stage 2 must not end the operation from StartPhase2")
-    if "Objectives.Unknown(" not in phase2:
-        fail("StartPhase2 must create the placeholder objective")
-    ok("Phase 1 transitions to a non-victory Phase 2 placeholder")
+        fail("Phase 2 must not end the operation from StartPhase2")
+    if "CreatePhase2Objectives()" not in phase2:
+        fail("StartPhase2 must create the two-sector Phase 2 objective set")
+    ok("Phase 1 transitions to complete non-victory Phase 2 flow")
 
     required_text = (
         "Destroy the Forward Command Post",
         "Destroy Cybran Radar",
+        "Destroy Western Logistics Base",
+        "Destroy Eastern Air Control Base",
+        "Intercept Cybran Supply Convoys",
+        "Destroy Cybran Radar Network",
         "AREA_PHASE_1",
         "AREA_PHASE_2",
-        "Counterattack",
+        "AREA_PHASE_3",
+        "Central response triggered",
+        "West completed",
+        "East completed",
     )
     for token in required_text:
         if token not in script:
-            fail(f"Stage 2 mission flow token missing: {token}")
-    ok("primary/secondary/counterattack/map expansion flow present")
+            fail(f"mission flow token missing: {token}")
+    ok("Phase 1 + complete Phase 2 objective/counter-response flow present")
+
+    for field in (
+        "WestCompleted",
+        "EastCompleted",
+        "CentralResponseTriggered",
+        "WestConvoysDestroyed",
+        "RadarNetworkDestroyed",
+        "Finished",
+    ):
+        if field not in script:
+            fail(f"MissionState.Phase2 field missing: {field}")
+    ok("central MissionState.Phase2 contract present")
+
+    if re.search(r"function\s+CompletePhase2\s*\(\s*\)(.*?)function\s+StartPhase3", script, re.S) is None:
+        fail("CompletePhase2 / StartPhase3 transition missing")
+    complete_phase2 = re.search(
+        r"function\s+CompletePhase2\s*\(\s*\)(.*?)function\s+StartPhase3",
+        script,
+        re.S,
+    ).group(1)
+    for token in ("AREA_PHASE_3", "MissionState.CurrentPhase = 3", "StartPhase3()"):
+        if token not in complete_phase2:
+            fail(f"CompletePhase2 transition token missing: {token}")
+    if "MissionVictory(" in complete_phase2 or "EndOperation(" in complete_phase2:
+        fail("CompletePhase2 must not end the operation")
+    ok("Phase 2 completes only into Phase 3 placeholder")
 
     if not editor_plan.is_file():
         fail("MAP_EDITOR_PLAN.md is required when a real .scmap is not generated")
@@ -354,6 +483,14 @@ def main() -> int:
         "CROSSING_WEST",
         "CROSSING_EAST",
         "FORWARD_OUTPOST_CENTER",
+        "WEST_LOGISTICS_COMMAND",
+        "EAST_AIR_CONTROL_COMMAND",
+        "CHAIN_WEST_SUPPLY",
+        "CHAIN_EAST_AIR_PATROL_01",
+        "CENTRAL_RESPONSE_SPAWN",
+        "AREA_PHASE_2_WEST",
+        "AREA_PHASE_2_EAST",
+        "AREA_PHASE_2_CENTER",
         "Resource markers",
         "Pathing validation",
     ):
@@ -370,7 +507,7 @@ def main() -> int:
         print("[INFO] .scmap intentionally absent; Stage 2 requires FAF Map Editor export")
 
     run_luac_if_available()
-    print("[PASS] Operation Twin Spear Stage 2 static checks passed")
+    print("[PASS] Operation Twin Spear Stage 3 / complete Phase 2 static checks passed")
     return 0
 
 
