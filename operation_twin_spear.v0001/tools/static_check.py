@@ -227,6 +227,7 @@ REQUIRED_FUNCTIONS = {
     "CanSpawnPhase2Wave",
     "ResolveOutstandingWestConvoys",
     "ClearPhase2ThreadHandles",
+    "ClosePhase2SecondaryObjectives",
     "ActivateForwardObjective",
     "StartCounterattack",
 }
@@ -525,7 +526,7 @@ def main() -> int:
         script,
         re.S,
     ).group(1)
-    for token in ("AREA_PHASE_3", "MissionState.CurrentPhase = 3", "StartPhase3()"):
+    for token in ("ClosePhase2SecondaryObjectives()", "AREA_PHASE_3", "MissionState.CurrentPhase = 3", "StartPhase3()"):
         if token not in complete_phase2:
             fail(f"CompletePhase2 transition token missing: {token}")
     if "MissionVictory(" in complete_phase2 or "EndOperation(" in complete_phase2:
