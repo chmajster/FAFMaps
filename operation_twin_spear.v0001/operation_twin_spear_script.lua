@@ -6,6 +6,7 @@ local DEBUG = false
 local DEBUG_OPTIONS = {
     StartPhase1Immediately = false,
     StartPhase2Immediately = false,
+    StartPhase3Immediately = false,
     SkipIntro = false,
 }
 
@@ -41,6 +42,14 @@ local UnitBlueprints = {
         Interceptor = 'ura0102',
         Bomber = 'ura0103',
         Gunship = 'ura0203',
+        TransportT1 = 'ura0107',
+        TransportT2 = 'ura0104',
+        EngineerT2 = 'url0208',
+        StealthT2 = 'url0306',
+        SiegeAssaultT3 = 'url0303',
+        HeavyArtilleryT3 = 'url0304',
+        AirSuperiorityT3 = 'ura0303',
+        StrategicBomberT3 = 'ura0304',
     },
 }
 
@@ -179,7 +188,63 @@ local Dialogues = {
     },
     Phase3 = {
         {
-            text = '[UEF Command]: Northern approach is open. Recon the main Cybran complex and prepare for the next assault.',
+            text = '[UEF Command]: The main complex is ahead, but three strategic installations are blocking our advance.',
+            faction = 'UEF',
+            duration = 6,
+        },
+    },
+    Phase3ArtilleryWarning = {
+        {
+            text = '[UEF Command]: Incoming long-range fire. Neutralize that artillery position.',
+            faction = 'UEF',
+            duration = 5,
+        },
+    },
+    Phase3StrategicResponse = {
+        {
+            text = '[UEF Command]: One installation down. Cybran command is reacting.',
+            faction = 'UEF',
+            duration = 5,
+        },
+    },
+    Phase3EmergencyResponse = {
+        {
+            text = '[UEF Command]: They\'re mobilizing everything they have left in this sector.',
+            faction = 'UEF',
+            duration = 5,
+        },
+    },
+    Phase3Complete = {
+        {
+            text = '[UEF Command]: The defense network is collapsing. The main complex is exposed.',
+            faction = 'UEF',
+            duration = 6,
+        },
+    },
+    Phase3ExperimentalTease = {
+        {
+            text = '[UEF Command]: We\'re detecting a massive power signature inside the complex.',
+            faction = 'UEF',
+            duration = 5,
+        },
+    },
+    Phase3RadarDestroyed = {
+        {
+            text = '[UEF Command]: Strategic radar is offline. Cybran drop and air coordination is degraded.',
+            faction = 'UEF',
+            duration = 5,
+        },
+    },
+    Phase3DataCore = {
+        {
+            text = '[UEF Command]: Data core secured. Uploading a partial layout of the main complex.',
+            faction = 'UEF',
+            duration = 5,
+        },
+    },
+    FinaleReady = {
+        {
+            text = '[UEF Command]: Commanders, this is it. The main complex is exposed. Prepare for the final assault.',
             faction = 'UEF',
             duration = 6,
         },
@@ -513,6 +578,232 @@ local WaveDefinitions = {
         },
     },
 
+
+    PHASE3_ATTACK_WEST = {
+        Name = 'PHASE3_ATTACK_WEST',
+        Phase = 3,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'PHASE3_ARTILLERY_CENTER',
+        AttackChain = 'CHAIN_PHASE3_ATTACK_WEST',
+        AllowRepeat = true,
+        TrackPool = 'LandAttackUnits',
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 3},
+            {Blueprint = UnitBlueprints.Cybran.MobileAAT2, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.MobileArtillery, Count = 1},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 1},
+        },
+    },
+    PHASE3_ATTACK_CENTER = {
+        Name = 'PHASE3_ATTACK_CENTER',
+        Phase = 3,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'PHASE3_DEFENSE_CENTER',
+        AttackChain = 'CHAIN_PHASE3_ATTACK_CENTER',
+        AllowRepeat = true,
+        TrackPool = 'LandAttackUnits',
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 4},
+            {Blueprint = UnitBlueprints.Cybran.MobileAAT2, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.MobileArtillery, Count = 1},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.HeavyArtilleryT3, Count = 1},
+        },
+    },
+    PHASE3_ATTACK_EAST = {
+        Name = 'PHASE3_ATTACK_EAST',
+        Phase = 3,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'PHASE3_GATEWAY_CENTER',
+        AttackChain = 'CHAIN_PHASE3_ATTACK_EAST',
+        AllowRepeat = true,
+        TrackPool = 'LandAttackUnits',
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 3},
+            {Blueprint = UnitBlueprints.Cybran.MobileAAT2, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.MobileArtillery, Count = 1},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 1},
+        },
+    },
+    PHASE3_AIR_SUPPORT = {
+        Name = 'PHASE3_AIR_SUPPORT',
+        Phase = 3,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'PHASE3_GATEWAY_CENTER',
+        AllowRepeat = true,
+        TrackPool = 'AirAttackUnits',
+        Air = true,
+        AirTargeting = true,
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.Gunship, Count = 1},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.AirSuperiorityT3, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.Gunship, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.AirSuperiorityT3, Count = 1},
+        },
+    },
+    PHASE3_GATEWAY_HEAVY = {
+        Name = 'PHASE3_GATEWAY_HEAVY',
+        Phase = 3,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'PHASE3_REINFORCEMENT_GATEWAY',
+        AttackChain = 'CHAIN_PHASE3_ATTACK_EAST',
+        AllowRepeat = true,
+        TrackPool = 'GatewayUnits',
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 4},
+            {Blueprint = UnitBlueprints.Cybran.MobileAAT2, Count = 1},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 1},
+        },
+    },
+    PHASE3_GATEWAY_SIEGE = {
+        Name = 'PHASE3_GATEWAY_SIEGE',
+        Phase = 3,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'PHASE3_REINFORCEMENT_GATEWAY',
+        AttackChain = 'CHAIN_PHASE3_ATTACK_CENTER',
+        AllowRepeat = true,
+        TrackPool = 'GatewayUnits',
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.MobileArtillery, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.MobileAAT2, Count = 1},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyArtilleryT3, Count = 1},
+        },
+    },
+    PHASE3_GATEWAY_LATE_T3 = {
+        Name = 'PHASE3_GATEWAY_LATE_T3',
+        Phase = 3,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'PHASE3_REINFORCEMENT_GATEWAY',
+        AttackChain = 'CHAIN_PHASE3_ATTACK_CENTER',
+        AllowRepeat = true,
+        TrackPool = 'GatewayUnits',
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.MobileAAT2, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 1},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyArtilleryT3, Count = 1},
+        },
+    },
+    PHASE3_STRATEGIC_LAND = {
+        Name = 'PHASE3_STRATEGIC_LAND',
+        Phase = 3,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'PHASE3_DEFENSE_CENTER',
+        AttackChain = 'CHAIN_PHASE3_ATTACK_CENTER',
+        AllowRepeat = true,
+        TrackPool = 'LandAttackUnits',
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 5},
+            {Blueprint = UnitBlueprints.Cybran.MobileAAT2, Count = 2},
+            {Blueprint = UnitBlueprints.Cybran.MobileArtillery, Count = 2},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 2},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 1},
+        },
+    },
+    PHASE3_STRATEGIC_AIR = {
+        Name = 'PHASE3_STRATEGIC_AIR',
+        Phase = 3,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'PHASE3_GATEWAY_CENTER',
+        AllowRepeat = true,
+        TrackPool = 'AirAttackUnits',
+        Air = true,
+        AirTargeting = true,
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = 3},
+            {Blueprint = UnitBlueprints.Cybran.Gunship, Count = 2},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.AirSuperiorityT3, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.AirSuperiorityT3, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.StrategicBomberT3, Count = 1},
+        },
+    },
+    PHASE3_EMERGENCY_LAND = {
+        Name = 'PHASE3_EMERGENCY_LAND',
+        Phase = 3,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'PHASE3_DEFENSE_CENTER',
+        AttackChain = 'CHAIN_PHASE3_FLANK_WEST',
+        AllowRepeat = true,
+        TrackPool = 'LandAttackUnits',
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.HeavyTankT2, Count = 7},
+            {Blueprint = UnitBlueprints.Cybran.MobileAAT2, Count = 3},
+            {Blueprint = UnitBlueprints.Cybran.MobileArtillery, Count = 2},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 2},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.SiegeAssaultT3, Count = 1},
+            {Blueprint = UnitBlueprints.Cybran.HeavyArtilleryT3, Count = 1},
+        },
+    },
+    PHASE3_EMERGENCY_AIR = {
+        Name = 'PHASE3_EMERGENCY_AIR',
+        Phase = 3,
+        Army = Army.EnemyMain,
+        SpawnMarker = 'PHASE3_GATEWAY_CENTER',
+        AllowRepeat = true,
+        TrackPool = 'AirAttackUnits',
+        Air = true,
+        AirTargeting = true,
+        Units = {
+            {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = 3},
+            {Blueprint = UnitBlueprints.Cybran.Gunship, Count = 2},
+        },
+        NormalUnits = {
+            {Blueprint = UnitBlueprints.Cybran.AirSuperiorityT3, Count = 1},
+        },
+        HardUnits = {
+            {Blueprint = UnitBlueprints.Cybran.StrategicBomberT3, Count = 1},
+        },
+    },
 }
 
 local MissionState = {
@@ -580,6 +871,38 @@ local MissionState = {
         ConvoyCounter = 0,
         AirRaidCounter = 0,
         PatrolCounter = 0,
+        Limits = {},
+    },
+
+    Phase3 = {
+        Started = false,
+        ArtilleryDestroyed = false,
+        DefenseNodeDestroyed = false,
+        ReinforcementGatewayDestroyed = false,
+        StrategicResponseTriggered = false,
+        EmergencyResponseTriggered = false,
+        RadarNetworkDestroyed = false,
+        RadarRewardApplied = false,
+        DataCoreDestroyed = false,
+        IntelRewardApplied = false,
+        ArtilleryWarningShown = false,
+        FinaleUnlocked = false,
+        Finished = false,
+        CompletedPrimaryCount = 0,
+        AttackCounter = 0,
+        TargetSelectionCounter = 0,
+        GatewayCounter = 0,
+        TransportCounter = 0,
+        BombardmentCounter = 0,
+        DefenseRebuilds = 0,
+        InitialDefenseStaticCount = 0,
+        LastAttackedPlayer = false,
+        Groups = {},
+        RadarUnits = {},
+        LandAttackUnits = {},
+        AirAttackUnits = {},
+        GatewayUnits = {},
+        TransportUnits = {},
         Limits = {},
     },
 }
@@ -717,6 +1040,22 @@ local function GetPhase2Limits()
         MaxActiveEastAirUnits = selected.East + (coop and 4 or 0),
         MaxActiveConvoyUnits = selected.Convoy + (coop and 2 or 0),
         MaxActiveCentralResponseUnits = selected.Central + (coop and 4 or 0),
+    }
+end
+
+local function GetPhase3Limits()
+    local byDifficulty = {
+        [1] = {Land = 30, Air = 10, Reinforcement = 18},
+        [2] = {Land = 42, Air = 16, Reinforcement = 28},
+        [3] = {Land = 54, Air = 24, Reinforcement = 38},
+    }
+    local selected = byDifficulty[MissionState.Difficulty] or byDifficulty[2]
+    local coop = MissionState.ActivePlayers >= 2
+
+    return {
+        Phase3MaxLandAttackUnits = math.floor(selected.Land * (coop and 1.45 or 1.00) + 0.5),
+        Phase3MaxAirAttackUnits = math.floor(selected.Air * (coop and 1.50 or 1.00) + 0.5),
+        Phase3MaxReinforcementUnits = math.floor(selected.Reinforcement * (coop and 1.50 or 1.00) + 0.5),
     }
 end
 
@@ -953,6 +1292,14 @@ local function AddThread(name, thread)
     return thread
 end
 
+local function StopMissionThread(name)
+    local thread = MissionState.Threads[name]
+    if thread then
+        KillThread(thread)
+        MissionState.Threads[name] = nil
+    end
+end
+
 local function CountLivingPlayerCommanders()
     local count = 0
     for armyName, commander in pairs(MissionState.PlayerCommanders) do
@@ -1154,7 +1501,14 @@ local function IssueWaveOrders(units, target, air, config)
         return
     end
 
-    if not attackChain then
+    if attackChain and config.ContinueToTarget then
+        local finalPosition = GetMarkerPosition(
+            target == Army.Player2 and 'P2_ATTACK_TARGET' or 'P1_ATTACK_TARGET'
+        )
+        if finalPosition then
+            IssueAggressiveMove(units, finalPosition)
+        end
+    elseif not attackChain then
         local chainName = target == Army.Player2 and 'CHAIN_FORWARD_TO_P2' or 'CHAIN_FORWARD_TO_P1'
         for _, position in ipairs(ScenarioUtils.ChainToPositions(chainName)) do
             IssueAggressiveMove(units, position)
@@ -1241,7 +1595,13 @@ function SpawnAttackWave(configOrName)
     end
 
     MissionState.SpawnedWaves[name] = true
-    Log(requiredPhase == 2 and 'PHASE2/WAVE' or 'WAVE', 'Spawn ' .. name)
+    if requiredPhase == 2 then
+        Log('PHASE2/WAVE', 'Spawn ' .. name)
+    elseif requiredPhase == 3 then
+        Log('PHASE3/WAVE', 'Spawn ' .. name)
+    else
+        Log('WAVE', 'Spawn ' .. name)
+    end
 
     local units = SpawnWaveUnits(config)
     if table.getn(units) == 0 then
@@ -1293,6 +1653,8 @@ function SpawnAttackWave(configOrName)
 
     if requiredPhase == 2 and config.TrackPool and MissionState.Phase2[config.TrackPool] then
         AppendUnits(MissionState.Phase2[config.TrackPool], units)
+    elseif requiredPhase == 3 and config.TrackPool and MissionState.Phase3[config.TrackPool] then
+        AppendUnits(MissionState.Phase3[config.TrackPool], units)
     end
 
     return units
@@ -2537,22 +2899,1111 @@ function CompletePhase2()
     StartPhase3()
 end
 
-function StartPhase3()
-    local phase = MissionState.Phase2
-    if MissionState.MissionEnded or phase.Phase3Started then
+local function NewPhase3State()
+    return {
+        Started = false,
+        ArtilleryDestroyed = false,
+        DefenseNodeDestroyed = false,
+        ReinforcementGatewayDestroyed = false,
+        StrategicResponseTriggered = false,
+        EmergencyResponseTriggered = false,
+        RadarNetworkDestroyed = false,
+        RadarRewardApplied = false,
+        DataCoreDestroyed = false,
+        IntelRewardApplied = false,
+        ArtilleryWarningShown = false,
+        FinaleUnlocked = false,
+        Finished = false,
+        CompletedPrimaryCount = 0,
+        AttackCounter = 0,
+        TargetSelectionCounter = 0,
+        GatewayCounter = 0,
+        TransportCounter = 0,
+        BombardmentCounter = 0,
+        DefenseRebuilds = 0,
+        InitialDefenseStaticCount = 0,
+        LastAttackedPlayer = false,
+        Groups = {},
+        RadarUnits = {},
+        LandAttackUnits = {},
+        AirAttackUnits = {},
+        GatewayUnits = {},
+        TransportUnits = {},
+        Limits = {},
+    }
+end
+
+local function WaitWhilePhase3(baseSeconds, systemName)
+    local remaining = baseSeconds
+    if DEBUG then
+        remaining = math.max(0.25, remaining * 0.10)
+    end
+
+    while remaining > 0 do
+        local phase = MissionState.Phase3
+        if MissionState.MissionEnded or MissionState.CurrentPhase ~= 3 or phase.Finished then
+            return false
+        end
+        if systemName == 'Artillery' and phase.ArtilleryDestroyed then
+            return false
+        end
+        if systemName == 'Defense' and phase.DefenseNodeDestroyed then
+            return false
+        end
+        if systemName == 'Gateway' and phase.ReinforcementGatewayDestroyed then
+            return false
+        end
+
+        local slice = math.min(5, remaining)
+        WaitSeconds(slice)
+        remaining = remaining - slice
+    end
+    return true
+end
+
+local function GetPhase3ArtilleryInterval()
+    local values = {[1] = 105, [2] = 80, [3] = 60}
+    local value = values[MissionState.Difficulty] or values[2]
+    if MissionState.ActivePlayers >= 2 then
+        value = value * 0.92
+    end
+    return value
+end
+
+local function GetPhase3AttackInterval()
+    local values = {[1] = 145, [2] = 115, [3] = 92}
+    local value = values[MissionState.Difficulty] or values[2]
+    if MissionState.ActivePlayers == 1 then
+        value = value * 1.18
+    end
+    return value
+end
+
+local function GetPhase3GatewayInterval()
+    local values = {[1] = 190, [2] = 155, [3] = 125}
+    local value = values[MissionState.Difficulty] or values[2]
+    if MissionState.ActivePlayers == 1 then
+        value = value * 1.12
+    end
+    return value
+end
+
+local function GetPhase3TransportInterval()
+    local values = {[1] = 390, [2] = 315, [3] = 245}
+    local value = values[MissionState.Difficulty] or values[2]
+    if MissionState.ActivePlayers == 1 then
+        value = value * 1.20
+    end
+    if MissionState.Phase3.RadarRewardApplied then
+        value = value * 1.50
+    end
+    return value
+end
+
+local FIRE_STATE_RETURN_FIRE = 0
+local FIRE_STATE_HOLD_FIRE = 1
+
+local function SetUnitsFireState(units, state)
+    if not units then
+        return
+    end
+    for _, unit in ipairs(units) do
+        if IsUnitAlive(unit) and unit.SetFireState then
+            unit:SetFireState(state)
+        end
+    end
+end
+
+local function SetupPhase3Garrison(units, platoonName, patrolChain)
+    if not units or table.getn(units) == 0 then
+        return
+    end
+    local brain = GetArmyBrain(Army.EnemyMain)
+    if not brain then
+        return
+    end
+    local platoon = brain:MakePlatoon(platoonName, 'NoPlan')
+    brain:AssignUnitsToPlatoon(platoon, units, 'Attack', 'AttackFormation')
+    ScenarioFramework.PlatoonPatrolChain(platoon, patrolChain)
+end
+
+local function OnPhase3ArtilleryDestroyed()
+    local phase = MissionState.Phase3
+    phase.ArtilleryDestroyed = true
+    Log('OBJECTIVE', 'Artillery destroyed')
+    if phase.Started then
+        CompleteArtilleryObjective()
+    end
+end
+
+local function OnPhase3DefenseNodeDestroyed()
+    local phase = MissionState.Phase3
+    phase.DefenseNodeDestroyed = true
+    Log('OBJECTIVE', 'Defense Node destroyed')
+    if phase.Started then
+        CompleteDefenseObjective()
+    end
+end
+
+local function OnPhase3GatewayDestroyed()
+    local phase = MissionState.Phase3
+    phase.ReinforcementGatewayDestroyed = true
+    Log('OBJECTIVE', 'Gateway destroyed')
+    if phase.Started then
+        CompleteGatewayObjective()
+    end
+end
+
+local function ApplyPhase3RadarReward()
+    local phase = MissionState.Phase3
+    if phase.RadarRewardApplied then
+        return
+    end
+    phase.RadarNetworkDestroyed = true
+    phase.RadarRewardApplied = true
+    MarkObjectiveCompleted('Phase3Radar')
+    SetObjectiveManualResultIfActive(MissionState.Objectives.Phase3Radar, true)
+    Log('OBJECTIVE', 'Strategic Radar destroyed; drop and air coordination reduced')
+    if phase.Started and not MissionState.MissionEnded then
+        ScenarioFramework.Dialogue(Dialogues.Phase3RadarDestroyed)
+    end
+end
+
+local function OnPhase3DataCoreDestroyed()
+    local phase = MissionState.Phase3
+    if phase.IntelRewardApplied then
+        return
+    end
+    phase.DataCoreDestroyed = true
+    phase.IntelRewardApplied = true
+    MarkObjectiveCompleted('Phase3DataCore')
+    SetObjectiveManualResultIfActive(MissionState.Objectives.Phase3DataCore, true)
+    Log('OBJECTIVE', 'Data Core destroyed; temporary finale intel granted')
+
+    local mainBase = GetMarkerPosition('CYBRAN_MAIN_BASE')
+    if mainBase then
+        ScenarioFramework.CreateVisibleArea(70, mainBase, 45, ScenarioInfo.Player1)
+        if IsArmyActive(ScenarioInfo.Player2, Army.Player2) then
+            ScenarioFramework.CreateVisibleArea(70, mainBase, 45, ScenarioInfo.Player2)
+        end
+    end
+
+    if phase.Started and not MissionState.MissionEnded then
+        ScenarioFramework.Dialogue(Dialogues.Phase3DataCore)
+    end
+end
+
+function InitializePhase3EnemyForces()
+    local phase = MissionState.Phase3
+    phase.Groups = phase.Groups or {}
+
+    phase.Groups.ArtilleryBase = SpawnPhase2Group('PHASE3_ARTILLERY_BASE')
+    phase.Groups.ArtilleryCore = SpawnPhase2Group('ARTILLERY_CORE')
+    phase.Groups.ArtilleryDefense = SpawnPhase2Group('ARTILLERY_DEFENSE')
+    if MissionState.Difficulty >= 2 then
+        AppendUnits(phase.Groups.ArtilleryDefense, SpawnPhase2Group('ARTILLERY_DEFENSE_NORMAL'))
+    end
+    if MissionState.Difficulty == 3 then
+        AppendUnits(phase.Groups.ArtilleryDefense, SpawnPhase2Group('ARTILLERY_DEFENSE_HARD'))
+    end
+    phase.Groups.ArtillerySupport = SpawnPhase2Group('ARTILLERY_SUPPORT')
+
+    phase.Groups.DefenseBase = SpawnPhase2Group('PHASE3_DEFENSE_BASE')
+    phase.Groups.DefenseNode = SpawnPhase2Group('DEFENSE_NODE')
+    phase.Groups.DefenseStatic = SpawnPhase2Group('DEFENSE_STATIC')
+    if MissionState.Difficulty >= 2 then
+        AppendUnits(phase.Groups.DefenseStatic, SpawnPhase2Group('DEFENSE_STATIC_NORMAL'))
+    end
+    if MissionState.Difficulty == 3 then
+        AppendUnits(phase.Groups.DefenseStatic, SpawnPhase2Group('DEFENSE_STATIC_HARD'))
+    end
+    phase.Groups.DefenseFactories = SpawnPhase2Group('DEFENSE_FACTORIES')
+    if MissionState.Difficulty >= 2 then
+        AppendUnits(phase.Groups.DefenseFactories, SpawnPhase2Group('DEFENSE_FACTORIES_NORMAL'))
+    end
+    if MissionState.Difficulty == 3 then
+        AppendUnits(phase.Groups.DefenseFactories, SpawnPhase2Group('DEFENSE_FACTORIES_HARD'))
+    end
+    phase.Groups.DefenseEngineers = SpawnPhase2Group('DEFENSE_ENGINEERS')
+    if MissionState.Difficulty == 3 then
+        AppendUnits(phase.Groups.DefenseEngineers, SpawnPhase2Group('DEFENSE_ENGINEERS_HARD'))
+    end
+    phase.Groups.DefenseGarrison = SpawnPhase2Group('DEFENSE_GARRISON')
+
+    phase.Groups.GatewayBase = SpawnPhase2Group('PHASE3_GATEWAY_BASE')
+    phase.Groups.GatewayCore = SpawnPhase2Group('GATEWAY_CORE')
+    phase.Groups.GatewayProduction = SpawnPhase2Group('GATEWAY_PRODUCTION')
+    if MissionState.Difficulty >= 2 then
+        AppendUnits(phase.Groups.GatewayProduction, SpawnPhase2Group('GATEWAY_PRODUCTION_NORMAL'))
+    end
+    if MissionState.Difficulty == 3 then
+        AppendUnits(phase.Groups.GatewayProduction, SpawnPhase2Group('GATEWAY_PRODUCTION_HARD'))
+    end
+    phase.Groups.GatewayAA = SpawnPhase2Group('GATEWAY_AA')
+    if MissionState.Difficulty == 3 then
+        AppendUnits(phase.Groups.GatewayAA, SpawnPhase2Group('GATEWAY_AA_HARD'))
+    end
+    phase.Groups.GatewaySupport = SpawnPhase2Group('GATEWAY_SUPPORT')
+
+    phase.RadarUnits = SpawnPhase2Group('PHASE3_STRATEGIC_RADAR')
+    phase.Groups.DataCore = SpawnPhase2Group('PHASE3_DATA_CORE')
+
+    MissionState.Targets.Phase3Artillery = GetNamedArmyUnit(Army.EnemyMain, 'Phase3_Artillery_Core')
+    MissionState.Targets.Phase3DefenseNode = GetNamedArmyUnit(Army.EnemyMain, 'Heavy_Defense_Control_Node')
+    MissionState.Targets.Phase3Gateway = GetNamedArmyUnit(Army.EnemyMain, 'Phase3_Reinforcement_Gateway')
+    MissionState.Targets.Phase3DataCore = GetNamedArmyUnit(Army.EnemyMain, 'Phase3_Data_Core')
+
+    local artillery = MissionState.Targets.Phase3Artillery
+    local defenseNode = MissionState.Targets.Phase3DefenseNode
+    local gateway = MissionState.Targets.Phase3Gateway
+    local dataCore = MissionState.Targets.Phase3DataCore
+
+    if not IsUnitAlive(artillery) or not IsUnitAlive(defenseNode) or not IsUnitAlive(gateway) then
+        Log('FAIL', 'Phase 3 primary objective structure creation failed')
+        return false
+    end
+
+    ProtectObjectiveStructure(artillery, 'Cybran Long-Range Artillery')
+    ProtectObjectiveStructure(defenseNode, 'Heavy Defense Control Node')
+    ProtectObjectiveStructure(gateway, 'Cybran Reinforcement Gateway')
+    if IsUnitAlive(dataCore) then
+        ProtectObjectiveStructure(dataCore, 'Cybran Data Core')
+    end
+
+    SetUnitsFireState(phase.Groups.ArtilleryCore, FIRE_STATE_HOLD_FIRE)
+    SetUnitsFireState(phase.Groups.ArtilleryDefense, FIRE_STATE_HOLD_FIRE)
+    SetUnitsFireState(phase.Groups.ArtillerySupport, FIRE_STATE_HOLD_FIRE)
+    SetUnitsFireState(phase.Groups.DefenseStatic, FIRE_STATE_HOLD_FIRE)
+    SetUnitsFireState(phase.Groups.DefenseGarrison, FIRE_STATE_HOLD_FIRE)
+    SetUnitsFireState(phase.Groups.GatewayAA, FIRE_STATE_HOLD_FIRE)
+    SetUnitsFireState(phase.Groups.GatewaySupport, FIRE_STATE_HOLD_FIRE)
+
+    ScenarioFramework.CreateUnitDeathTrigger(OnPhase3ArtilleryDestroyed, artillery)
+    ScenarioFramework.CreateUnitDeathTrigger(OnPhase3DefenseNodeDestroyed, defenseNode)
+    ScenarioFramework.CreateUnitDeathTrigger(OnPhase3GatewayDestroyed, gateway)
+
+    if phase.RadarUnits and table.getn(phase.RadarUnits) > 0 then
+        for _, radar in ipairs(phase.RadarUnits) do
+            ProtectObjectiveStructure(radar, 'Cybran Strategic Radar')
+        end
+        ScenarioFramework.CreateGroupDeathTrigger(
+            ApplyPhase3RadarReward,
+            phase.RadarUnits,
+            'OTS_PHASE3_RADAR_DESTROYED'
+        )
+    end
+
+    if IsUnitAlive(dataCore) then
+        ScenarioFramework.CreateUnitDeathTrigger(OnPhase3DataCoreDestroyed, dataCore)
+    else
+        phase.DataCoreDestroyed = true
+    end
+
+    phase.InitialDefenseStaticCount = CountLivingUnits(phase.Groups.DefenseStatic)
+    Log('PHASE3', 'Strategic installations initialized in passive state')
+    return true
+end
+
+local function CountPhase3PrimaryCompleted()
+    local phase = MissionState.Phase3
+    local count = 0
+    if phase.ArtilleryDestroyed then count = count + 1 end
+    if phase.DefenseNodeDestroyed then count = count + 1 end
+    if phase.ReinforcementGatewayDestroyed then count = count + 1 end
+    phase.CompletedPrimaryCount = count
+    return count
+end
+
+function SelectPhase3AttackTarget()
+    local phase = MissionState.Phase3
+    local available = GetAvailableWaveTargets()
+    if table.getn(available) == 0 then
+        return nil
+    end
+    if table.getn(available) == 1 then
+        phase.LastAttackedPlayer = available[1]
+        return available[1]
+    end
+
+    phase.TargetSelectionCounter = phase.TargetSelectionCounter + 1
+    local selected = nil
+    if phase.LastAttackedPlayer and math.mod(phase.TargetSelectionCounter, 3) ~= 0 then
+        for _, target in ipairs(available) do
+            if target ~= phase.LastAttackedPlayer then
+                selected = target
+                break
+            end
+        end
+    end
+
+    if not selected then
+        selected = available[1]
+        local pressure = MissionState.WavePressure[selected] or 0
+        for _, target in ipairs(available) do
+            local targetPressure = MissionState.WavePressure[target] or 0
+            if targetPressure < pressure then
+                selected = target
+                pressure = targetPressure
+            end
+        end
+    end
+
+    phase.LastAttackedPlayer = selected
+    return selected
+end
+
+function GetAvailablePhase3AttackTypes()
+    local phase = MissionState.Phase3
+    local types = {}
+    if not phase.ArtilleryDestroyed then
+        table.insert(types, 'PHASE3_ATTACK_WEST')
+    end
+    if not phase.DefenseNodeDestroyed then
+        table.insert(types, 'PHASE3_ATTACK_CENTER')
+    end
+    if not phase.ReinforcementGatewayDestroyed then
+        table.insert(types, 'PHASE3_ATTACK_EAST')
+    end
+    if table.getn(types) == 0 then
+        table.insert(types, 'PHASE3_ATTACK_CENTER')
+    end
+    return types
+end
+
+function CanSpawnPhase3Attack(poolName, expectedUnits)
+    local phase = MissionState.Phase3
+    local pool = phase[poolName] or {}
+    pool = PruneLivingUnits(pool)
+    phase[poolName] = pool
+
+    local limit = phase.Limits.Phase3MaxLandAttackUnits
+    if poolName == 'AirAttackUnits' then
+        limit = phase.Limits.Phase3MaxAirAttackUnits
+    elseif poolName == 'GatewayUnits' or poolName == 'TransportUnits' then
+        limit = phase.Limits.Phase3MaxReinforcementUnits
+    end
+
+    return table.getn(pool) + (expectedUnits or 1) <= limit
+end
+
+local function EstimatePhase3WaveUnits(config)
+    local total = 0
+    local function AddComposition(composition)
+        if not composition then return end
+        for _, spec in ipairs(composition) do
+            total = total + GetScaledUnitCount(spec.Count or 0)
+        end
+    end
+
+    AddComposition(config.Units)
+    if MissionState.Difficulty >= 2 then
+        AddComposition(config.NormalUnits)
+    end
+    if MissionState.Difficulty == 3 then
+        AddComposition(config.HardUnits)
+    end
+    return total
+end
+
+function LaunchConfiguredAttack(configName, preferredTarget)
+    local base = WaveDefinitions[configName]
+    if not base or MissionState.CurrentPhase ~= 3 or MissionState.Phase3.Finished then
+        return {}
+    end
+
+    local poolName = base.TrackPool or 'LandAttackUnits'
+    local expectedUnits = EstimatePhase3WaveUnits(base)
+    if not CanSpawnPhase3Attack(poolName, expectedUnits) then
+        DebugLog('PHASE3', 'Unit cap blocks ' .. tostring(configName))
+        return {}
+    end
+
+    local config = {}
+    for key, value in pairs(base) do
+        config[key] = value
+    end
+    config.PreferredTarget = preferredTarget or SelectPhase3AttackTarget()
+    if not config.Air and config.AttackChain then
+        config.ContinueToTarget = true
+    end
+    return SpawnAttackWave(config)
+end
+
+function SpawnPhase3Attack()
+    local types = GetAvailablePhase3AttackTypes()
+    if table.getn(types) == 0 then
+        return {}
+    end
+    local phase = MissionState.Phase3
+    phase.AttackCounter = phase.AttackCounter + 1
+    local index = math.mod(phase.AttackCounter - 1, table.getn(types)) + 1
+    local target = SelectPhase3AttackTarget()
+    local units = LaunchConfiguredAttack(types[index], target)
+
+    if MissionState.ActivePlayers >= 2
+        and MissionState.Difficulty >= 2
+        and math.mod(phase.AttackCounter, 3) == 0
+        and CanSpawnPhase3Attack('AirAttackUnits', 4)
+        and not (phase.RadarRewardApplied and math.mod(phase.AttackCounter, 2) == 0)
+    then
+        LaunchConfiguredAttack('PHASE3_AIR_SUPPORT', SelectPhase3AttackTarget())
+    end
+    return units
+end
+
+local function Phase3ArtilleryThread()
+    local phase = MissionState.Phase3
+    local artillery = MissionState.Targets.Phase3Artillery
+
+    if not phase.ArtilleryWarningShown then
+        phase.ArtilleryWarningShown = true
+        ScenarioFramework.Dialogue(Dialogues.Phase3ArtilleryWarning)
+    end
+
+    if not WaitWhilePhase3(15, 'Artillery') then
         return
     end
 
-    phase.Phase3Started = true
-    Log('PHASE3', 'Placeholder started')
-    ScenarioFramework.Dialogue(Dialogues.Phase3)
+    while not MissionState.MissionEnded
+        and MissionState.CurrentPhase == 3
+        and not phase.ArtilleryDestroyed
+        and not phase.Finished
+    do
+        if not IsUnitAlive(artillery) then
+            OnPhase3ArtilleryDestroyed()
+            return
+        end
 
-    MissionState.Objectives.Phase3Placeholder = Objectives.Unknown(
+        -- Use the stock FAF artillery acquisition logic instead of querying the
+        -- player army directly. The scripted layer only controls firing windows,
+        -- so there is no perfect-information ACU/structure sniping and no custom
+        -- damage or weapon blueprint modification.
+        phase.BombardmentCounter = phase.BombardmentCounter + 1
+        artillery:SetFireState('Aggressive')
+        Log('ARTILLERY', 'Bombardment window active')
+
+        if not WaitWhilePhase3(22, 'Artillery') then
+            return
+        end
+
+        if IsUnitAlive(artillery) then
+            artillery:SetFireState('HoldFire')
+            IssueClearCommands({artillery})
+        end
+
+        if not WaitWhilePhase3(GetPhase3ArtilleryInterval(), 'Artillery') then
+            return
+        end
+    end
+end
+
+local function Phase3DefenseRepairThread()
+    local phase = MissionState.Phase3
+    local rebuildLimit = ({[1] = 1, [2] = 2, [3] = 3})[MissionState.Difficulty] or 2
+    local rebuildMarkers = {'PHASE3_DEFENSE_REBUILD_01', 'PHASE3_DEFENSE_REBUILD_02', 'PHASE3_DEFENSE_REBUILD_03'}
+
+    while not MissionState.MissionEnded
+        and MissionState.CurrentPhase == 3
+        and not phase.DefenseNodeDestroyed
+        and not phase.Finished
+    do
+        phase.Groups.DefenseEngineers = PruneLivingUnits(phase.Groups.DefenseEngineers)
+        local engineers = phase.Groups.DefenseEngineers
+        if table.getn(engineers) == 0 then
+            return
+        end
+
+        local repairTarget = nil
+        for _, unit in ipairs(phase.Groups.DefenseStatic or {}) do
+            if IsUnitAlive(unit) and unit:GetHealth() < unit:GetMaxHealth() * 0.92 then
+                repairTarget = unit
+                break
+            end
+        end
+
+        if repairTarget then
+            IssueClearCommands(engineers)
+            IssueRepair(engineers, repairTarget)
+        elseif phase.DefenseRebuilds < rebuildLimit
+            and CountLivingUnits(phase.Groups.DefenseStatic) < phase.InitialDefenseStaticCount
+        then
+            phase.DefenseRebuilds = phase.DefenseRebuilds + 1
+            local markerName = rebuildMarkers[phase.DefenseRebuilds] or rebuildMarkers[1]
+            local position = GetMarkerPosition(markerName)
+            if position then
+                local blueprint = math.mod(phase.DefenseRebuilds, 2) == 0 and 'urb2304' or 'urb2301'
+                IssueClearCommands({engineers[1]})
+                IssueBuildMobile({engineers[1]}, position, blueprint, {})
+                Log('DEFENSE', 'Engineer reconstruction order issued: ' .. blueprint)
+            end
+        end
+
+        if not WaitWhilePhase3(18, 'Defense') then
+            return
+        end
+    end
+end
+
+local function Phase3GatewayReinforcementThread()
+    local phase = MissionState.Phase3
+    local cycle = {
+        'PHASE3_GATEWAY_HEAVY',
+        'PHASE3_GATEWAY_SIEGE',
+        'PHASE3_GATEWAY_HEAVY',
+        'PHASE3_GATEWAY_LATE_T3',
+    }
+
+    if not WaitWhilePhase3(70, 'Gateway') then
+        return
+    end
+
+    while not MissionState.MissionEnded
+        and MissionState.CurrentPhase == 3
+        and not phase.ReinforcementGatewayDestroyed
+        and not phase.Finished
+    do
+        phase.GatewayCounter = phase.GatewayCounter + 1
+        local name = cycle[math.mod(phase.GatewayCounter - 1, table.getn(cycle)) + 1]
+        if name == 'PHASE3_GATEWAY_LATE_T3' and MissionState.Difficulty == 1 then
+            name = 'PHASE3_GATEWAY_HEAVY'
+        end
+
+        if CanSpawnPhase3Attack('GatewayUnits', 5) then
+            LaunchConfiguredAttack(name, SelectPhase3AttackTarget())
+            Log('GATEWAY', 'Reinforcement spawned: ' .. name)
+        end
+
+        if not WaitWhilePhase3(GetPhase3GatewayInterval(), 'Gateway') then
+            return
+        end
+    end
+end
+
+local function SpawnTransportEscort(transportIndex)
+    local escorts = {}
+    local entry = 'PHASE3_TRANSPORT_ENTRY'
+    local specs = {
+        {Blueprint = UnitBlueprints.Cybran.Interceptor, Count = MissionState.Difficulty >= 2 and 2 or 1},
+        {Blueprint = UnitBlueprints.Cybran.Gunship, Count = MissionState.Difficulty == 3 and 1 or 0},
+        {Blueprint = UnitBlueprints.Cybran.AirSuperiorityT3, Count = MissionState.Difficulty == 3 and 1 or 0},
+    }
+    local offset = transportIndex * 5
+    for _, spec in ipairs(specs) do
+        for index = 1, spec.Count do
+            local unit = SpawnOffsetUnit(
+                Army.EnemyMain,
+                spec.Blueprint,
+                entry,
+                offset + index * 3,
+                -8 - index * 2,
+                3.141592653589793,
+                35
+            )
+            if unit then table.insert(escorts, unit) end
+        end
+    end
+    return escorts
+end
+
+function SpawnTransportDrop()
+    local phase = MissionState.Phase3
+    if MissionState.MissionEnded
+        or MissionState.CurrentPhase ~= 3
+        or phase.Finished
+        or phase.ReinforcementGatewayDestroyed
+    then
+        return {}
+    end
+
+    local transportCount = 1
+    if MissionState.Difficulty == 3 and MissionState.ActivePlayers >= 2 then
+        transportCount = 2
+    end
+
+    local expectedCargo = transportCount * 8
+    if not CanSpawnPhase3Attack('GatewayUnits', expectedCargo) then
+        DebugLog('TRANSPORT', 'Drop suppressed by Phase 3 reinforcement cap')
+        return {}
+    end
+
+    local transports = {}
+    local cargoAll = {}
+    local escortsAll = {}
+    local target = SelectPhase3AttackTarget()
+    local dropChain = target == Army.Player2 and 'CHAIN_REINFORCEMENT_DROP_EAST' or 'CHAIN_REINFORCEMENT_DROP_WEST'
+    local flankChain = target == Army.Player2 and 'CHAIN_PHASE3_FLANK_EAST' or 'CHAIN_PHASE3_FLANK_WEST'
+    local dropPositions = ScenarioUtils.ChainToPositions(dropChain)
+    local exitPositions = ScenarioUtils.ChainToPositions('CHAIN_REINFORCEMENT_EXIT')
+
+    for transportIndex = 1, transportCount do
+        local transport = SpawnOffsetUnit(
+            Army.EnemyMain,
+            UnitBlueprints.Cybran.TransportT2,
+            'PHASE3_TRANSPORT_ENTRY',
+            transportIndex * 7,
+            transportIndex * 4,
+            3.141592653589793,
+            40
+        )
+        if transport then
+            table.insert(transports, transport)
+            table.insert(phase.TransportUnits, transport)
+
+            local cargo = {}
+            local cargoSpecs = {
+                {Blueprint = UnitBlueprints.Cybran.AssaultBot, Count = 4},
+                {Blueprint = UnitBlueprints.Cybran.MobileAA, Count = 2},
+                {Blueprint = UnitBlueprints.Cybran.MobileArtillery, Count = 2},
+            }
+            local cargoIndex = 0
+            for _, spec in ipairs(cargoSpecs) do
+                for _ = 1, spec.Count do
+                    cargoIndex = cargoIndex + 1
+                    local unit = SpawnOffsetUnit(
+                        Army.EnemyMain,
+                        spec.Blueprint,
+                        'PHASE3_GATEWAY_CENTER',
+                        transportIndex * 12 + math.mod(cargoIndex, 3) * 3,
+                        12 + math.floor(cargoIndex / 3) * 3,
+                        3.141592653589793,
+                        0
+                    )
+                    if unit then
+                        table.insert(cargo, unit)
+                        table.insert(cargoAll, unit)
+                        table.insert(phase.GatewayUnits, unit)
+                    end
+                end
+            end
+
+            if table.getn(cargo) > 0 then
+                IssueClearCommands(cargo)
+                IssueTransportLoad(cargo, transport)
+            end
+            if CanSpawnPhase3Attack('AirAttackUnits', MissionState.Difficulty == 3 and 4 or 2) then
+                local escorts = SpawnTransportEscort(transportIndex)
+                AppendUnits(escortsAll, escorts)
+                AppendUnits(phase.AirAttackUnits, escorts)
+            end
+        end
+    end
+
+    if table.getn(transports) == 0 then
+        return {}
+    end
+
+    phase.TransportCounter = phase.TransportCounter + 1
+    Log('TRANSPORT', 'Drop mission launched')
+
+    if not WaitWhilePhase3(14, 'Gateway') then
+        return transports
+    end
+
+    for _, position in ipairs(ScenarioUtils.ChainToPositions('CHAIN_REINFORCEMENT_AIR_ENTRY')) do
+        IssueMove(transports, position)
+        if table.getn(escortsAll) > 0 then IssueMove(escortsAll, position) end
+    end
+    for _, position in ipairs(dropPositions) do
+        IssueMove(transports, position)
+        if table.getn(escortsAll) > 0 then IssueMove(escortsAll, position) end
+    end
+
+    local unload = dropPositions[table.getn(dropPositions)]
+    if unload then
+        IssueTransportUnload(transports, unload)
+    end
+    for _, position in ipairs(exitPositions) do
+        IssueMove(transports, position)
+        if table.getn(escortsAll) > 0 then IssueMove(escortsAll, position) end
+    end
+
+    if not WaitWhilePhase3(35, 'Gateway') then
+        return transports
+    end
+
+    if table.getn(cargoAll) > 0 then
+        IssueWaveOrders(cargoAll, target, false, {
+            AttackChain = flankChain,
+            ContinueToTarget = true,
+        })
+    end
+    if table.getn(escortsAll) > 0 then
+        IssueWaveOrders(escortsAll, target, true, {AirTargeting = true})
+    end
+
+    return transports
+end
+
+local function Phase3TransportDropThread()
+    if not WaitWhilePhase3(125, 'Gateway') then
+        return
+    end
+
+    while not MissionState.MissionEnded
+        and MissionState.CurrentPhase == 3
+        and not MissionState.Phase3.ReinforcementGatewayDestroyed
+        and not MissionState.Phase3.Finished
+    do
+        if CanSpawnPhase3Attack('GatewayUnits', 8) then
+            SpawnTransportDrop()
+        end
+        if not WaitWhilePhase3(GetPhase3TransportInterval(), 'Gateway') then
+            return
+        end
+    end
+end
+
+local function Phase3AttackDirectorThread()
+    if not WaitWhilePhase3(65, nil) then
+        return
+    end
+
+    while not MissionState.MissionEnded
+        and MissionState.CurrentPhase == 3
+        and not MissionState.Phase3.Finished
+    do
+        SpawnPhase3Attack()
+        if not WaitWhilePhase3(GetPhase3AttackInterval(), nil) then
+            return
+        end
+    end
+end
+
+function TriggerStrategicResponse()
+    local phase = MissionState.Phase3
+    if MissionState.MissionEnded
+        or MissionState.CurrentPhase ~= 3
+        or phase.Finished
+        or phase.StrategicResponseTriggered
+    then
+        return
+    end
+
+    phase.StrategicResponseTriggered = true
+    Log('RESPONSE', 'Strategic Response triggered')
+    ScenarioFramework.Dialogue(Dialogues.Phase3StrategicResponse)
+
+    LaunchConfiguredAttack('PHASE3_STRATEGIC_LAND', SelectPhase3AttackTarget())
+    if not phase.RadarRewardApplied or MissionState.Difficulty == 3 then
+        LaunchConfiguredAttack('PHASE3_STRATEGIC_AIR', SelectPhase3AttackTarget())
+    end
+end
+
+function TriggerEmergencyResponse()
+    local phase = MissionState.Phase3
+    if MissionState.MissionEnded
+        or MissionState.CurrentPhase ~= 3
+        or phase.Finished
+        or phase.EmergencyResponseTriggered
+    then
+        return
+    end
+
+    phase.EmergencyResponseTriggered = true
+    Log('RESPONSE', 'Emergency Response triggered')
+    ScenarioFramework.Dialogue(Dialogues.Phase3EmergencyResponse)
+
+    LaunchConfiguredAttack('PHASE3_EMERGENCY_LAND', SelectPhase3AttackTarget())
+    if not phase.RadarRewardApplied or MissionState.Difficulty == 3 then
+        LaunchConfiguredAttack('PHASE3_EMERGENCY_AIR', SelectPhase3AttackTarget())
+    end
+    if not phase.ReinforcementGatewayDestroyed then
+        AddThread('Phase3EmergencyDrop', ForkThread(SpawnTransportDrop))
+    end
+end
+
+local function UpdatePhase3ResponseState()
+    local count = CountPhase3PrimaryCompleted()
+    if count >= 1 and not MissionState.Phase3.StrategicResponseTriggered then
+        TriggerStrategicResponse()
+    end
+    if count >= 2 and not MissionState.Phase3.EmergencyResponseTriggered then
+        TriggerEmergencyResponse()
+    end
+end
+
+function CheckPhase3Completion()
+    local phase = MissionState.Phase3
+    if phase.Finished then
+        return
+    end
+    if phase.ArtilleryDestroyed
+        and phase.DefenseNodeDestroyed
+        and phase.ReinforcementGatewayDestroyed
+    then
+        CompletePhase3()
+    end
+end
+
+function CompleteArtilleryObjective()
+    local phase = MissionState.Phase3
+    if phase.ArtilleryDestroyed and MissionState.CompletedObjectives.Phase3Artillery then
+        return
+    end
+    phase.ArtilleryDestroyed = true
+    MarkObjectiveCompleted('Phase3Artillery')
+    SetObjectiveManualResultIfActive(MissionState.Objectives.Phase3Artillery, true)
+    StopMissionThread('Phase3Artillery')
+    UpdatePhase3ResponseState()
+    CheckPhase3Completion()
+end
+
+function CompleteDefenseObjective()
+    local phase = MissionState.Phase3
+    if phase.DefenseNodeDestroyed and MissionState.CompletedObjectives.Phase3Defense then
+        return
+    end
+    phase.DefenseNodeDestroyed = true
+    MarkObjectiveCompleted('Phase3Defense')
+    SetObjectiveManualResultIfActive(MissionState.Objectives.Phase3Defense, true)
+    StopMissionThread('Phase3DefenseRepair')
+    if phase.Groups.DefenseEngineers then
+        IssueClearCommands(phase.Groups.DefenseEngineers)
+    end
+    UpdatePhase3ResponseState()
+    CheckPhase3Completion()
+end
+
+function CompleteGatewayObjective()
+    local phase = MissionState.Phase3
+    if phase.ReinforcementGatewayDestroyed and MissionState.CompletedObjectives.Phase3Gateway then
+        return
+    end
+    phase.ReinforcementGatewayDestroyed = true
+    MarkObjectiveCompleted('Phase3Gateway')
+    SetObjectiveManualResultIfActive(MissionState.Objectives.Phase3Gateway, true)
+    StopMissionThread('Phase3GatewayReinforcement')
+    StopMissionThread('Phase3TransportDrops')
+    UpdatePhase3ResponseState()
+    CheckPhase3Completion()
+end
+
+local function CreatePhase3Objectives()
+    local phase = MissionState.Phase3
+    local artillery = MissionState.Targets.Phase3Artillery
+    local defenseNode = MissionState.Targets.Phase3DefenseNode
+    local gateway = MissionState.Targets.Phase3Gateway
+
+    if not artillery or not defenseNode or not gateway then
+        MissionFailure('Phase 3 objective structures missing')
+        return false
+    end
+
+    local artilleryDestroyed = phase.ArtilleryDestroyed or not IsUnitAlive(artillery)
+    local defenseDestroyed = phase.DefenseNodeDestroyed or not IsUnitAlive(defenseNode)
+    local gatewayDestroyed = phase.ReinforcementGatewayDestroyed or not IsUnitAlive(gateway)
+
+    MissionState.Objectives.Phase3Artillery = Objectives.Kill(
+        'primary',
+        artilleryDestroyed and 'complete' or 'incomplete',
+        'Destroy Long-Range Artillery',
+        'Destroy the Cybran artillery installation bombarding UEF positions.',
+        {
+            Units = {artillery},
+            MarkUnits = true,
+            AlwaysVisible = true,
+            ShowFaction = 'Cybran',
+        }
+    )
+    MissionState.Objectives.Phase3Defense = Objectives.Kill(
+        'primary',
+        defenseDestroyed and 'complete' or 'incomplete',
+        'Disable the Heavy Defense Network',
+        'Destroy the Cybran defense-control node coordinating the northern fortifications.',
+        {
+            Units = {defenseNode},
+            MarkUnits = true,
+            AlwaysVisible = true,
+            ShowFaction = 'Cybran',
+        }
+    )
+    MissionState.Objectives.Phase3Gateway = Objectives.Kill(
+        'primary',
+        gatewayDestroyed and 'complete' or 'incomplete',
+        'Destroy the Reinforcement Gateway',
+        'Neutralize the Cybran reinforcement staging facility before the final assault.',
+        {
+            Units = {gateway},
+            MarkUnits = true,
+            AlwaysVisible = true,
+            ShowFaction = 'Cybran',
+        }
+    )
+
+    if not artilleryDestroyed then
+        MissionState.Objectives.Phase3Artillery:AddResultCallback(function(success)
+            if success then CompleteArtilleryObjective() end
+        end)
+    end
+    if not defenseDestroyed then
+        MissionState.Objectives.Phase3Defense:AddResultCallback(function(success)
+            if success then CompleteDefenseObjective() end
+        end)
+    end
+    if not gatewayDestroyed then
+        MissionState.Objectives.Phase3Gateway:AddResultCallback(function(success)
+            if success then CompleteGatewayObjective() end
+        end)
+    end
+
+    local radarsAlive = {}
+    for _, radar in ipairs(phase.RadarUnits or {}) do
+        if IsUnitAlive(radar) then table.insert(radarsAlive, radar) end
+    end
+    local radarDestroyed = phase.RadarNetworkDestroyed or table.getn(radarsAlive) == 0
+    MissionState.Objectives.Phase3Radar = Objectives.Kill(
+        'secondary',
+        radarDestroyed and 'complete' or 'incomplete',
+        'Destroy Strategic Radar',
+        'Destroy the strategic radar to reduce transport drops and air-response coordination.',
+        {
+            Units = radarDestroyed and (phase.RadarUnits or {}) or radarsAlive,
+            MarkUnits = true,
+            AlwaysVisible = true,
+            ShowFaction = 'Cybran',
+        }
+    )
+    if not radarDestroyed then
+        MissionState.Objectives.Phase3Radar:AddResultCallback(function(success)
+            if success then ApplyPhase3RadarReward() end
+        end)
+    end
+
+    local dataCore = MissionState.Targets.Phase3DataCore
+    local dataDestroyed = phase.DataCoreDestroyed or not IsUnitAlive(dataCore)
+    MissionState.Objectives.Phase3DataCore = Objectives.Kill(
+        'secondary',
+        dataDestroyed and 'complete' or 'incomplete',
+        'Destroy the Cybran Data Core',
+        'Destroy the data core to obtain a temporary reveal of the main-complex layout.',
+        {
+            Units = dataCore and {dataCore} or {},
+            MarkUnits = true,
+            AlwaysVisible = true,
+            ShowFaction = 'Cybran',
+        }
+    )
+    if dataCore and not dataDestroyed then
+        MissionState.Objectives.Phase3DataCore:AddResultCallback(function(success)
+            if success then OnPhase3DataCoreDestroyed() end
+        end)
+    end
+
+    if radarDestroyed then ApplyPhase3RadarReward() end
+    if dataDestroyed then OnPhase3DataCoreDestroyed() end
+    if artilleryDestroyed then CompleteArtilleryObjective() end
+    if defenseDestroyed then CompleteDefenseObjective() end
+    if gatewayDestroyed then CompleteGatewayObjective() end
+    return true
+end
+
+function UnlockFinaleArea()
+    local phase = MissionState.Phase3
+    if phase.FinaleUnlocked then
+        return
+    end
+    phase.FinaleUnlocked = true
+    ScenarioFramework.SetPlayableArea('AREA_FINALE', true)
+    Log('MAP', 'Finale area unlocked')
+end
+
+function StartPhase4()
+    if MissionState.MissionEnded or MissionState.CurrentPhase ~= 4 then
+        return
+    end
+    if MissionState.Objectives.FinalePlaceholder then
+        return
+    end
+
+    ScenarioFramework.Dialogue(Dialogues.FinaleReady)
+    MissionState.Objectives.FinalePlaceholder = Objectives.Unknown(
         'primary',
         'incomplete',
-        'Recon the Northern Cybran Complex',
-        'Advance into the newly opened northern sector and prepare the assault on the main complex.'
+        'Destroy the Cybran Command Complex',
+        'The final assault is ready. Full finale logic is implemented in the next stage.'
     )
+end
+
+function CompletePhase3()
+    local phase = MissionState.Phase3
+    if MissionState.MissionEnded or phase.Finished then
+        return
+    end
+    if not phase.ArtilleryDestroyed
+        or not phase.DefenseNodeDestroyed
+        or not phase.ReinforcementGatewayDestroyed
+    then
+        DebugLog('PHASE3', 'Completion ignored until all three strategic installations are destroyed')
+        return
+    end
+
+    phase.Finished = true
+    MarkObjectiveCompleted('Phase3')
+    SetObjectiveManualResultIfActive(MissionState.Objectives.Phase3Artillery, true)
+    SetObjectiveManualResultIfActive(MissionState.Objectives.Phase3Defense, true)
+    SetObjectiveManualResultIfActive(MissionState.Objectives.Phase3Gateway, true)
+
+    StopMissionThread('Phase3Artillery')
+    StopMissionThread('Phase3DefenseRepair')
+    StopMissionThread('Phase3GatewayReinforcement')
+    StopMissionThread('Phase3TransportDrops')
+    StopMissionThread('Phase3AttackDirector')
+    StopMissionThread('Phase3EmergencyDrop')
+
+    if phase.Groups.DefenseEngineers then
+        IssueClearCommands(phase.Groups.DefenseEngineers)
+    end
+
+    Log('PHASE3', 'Complete')
+    ScenarioFramework.Dialogue(Dialogues.Phase3Complete)
+    ScenarioFramework.Dialogue(Dialogues.Phase3ExperimentalTease)
+    UnlockFinaleArea()
+
+    MissionState.CurrentPhase = 4
+    StartPhase4()
+end
+
+function StartPhase3()
+    local phase2 = MissionState.Phase2
+    local phase = MissionState.Phase3
+    if MissionState.MissionEnded or phase.Started then
+        return
+    end
+
+    phase2.Phase3Started = true
+    MissionState.CurrentPhase = 3
+    phase.Started = true
+    Log('PHASE3', 'Starting')
+    ScenarioFramework.Dialogue(Dialogues.Phase3)
+
+    SetUnitsFireState(phase.Groups.ArtilleryCore, FIRE_STATE_RETURN_FIRE)
+    SetUnitsFireState(phase.Groups.ArtilleryDefense, FIRE_STATE_RETURN_FIRE)
+    SetUnitsFireState(phase.Groups.ArtillerySupport, FIRE_STATE_RETURN_FIRE)
+    SetUnitsFireState(phase.Groups.DefenseStatic, FIRE_STATE_RETURN_FIRE)
+    SetUnitsFireState(phase.Groups.DefenseGarrison, FIRE_STATE_RETURN_FIRE)
+    SetUnitsFireState(phase.Groups.GatewayAA, FIRE_STATE_RETURN_FIRE)
+    SetUnitsFireState(phase.Groups.GatewaySupport, FIRE_STATE_RETURN_FIRE)
+
+    SetupPhase3Garrison(phase.Groups.ArtillerySupport, 'OTS_Phase3_Artillery_Support', 'CHAIN_PHASE3_ATTACK_WEST')
+    SetupPhase3Garrison(phase.Groups.DefenseGarrison, 'OTS_Phase3_Defense_Garrison', 'CHAIN_PHASE3_ATTACK_CENTER')
+    SetupPhase3Garrison(phase.Groups.GatewaySupport, 'OTS_Phase3_Gateway_Support', 'CHAIN_PHASE3_ATTACK_EAST')
+
+    if not CreatePhase3Objectives() or MissionState.MissionEnded or phase.Finished then
+        return
+    end
+
+    if not phase.ArtilleryDestroyed then
+        AddThread('Phase3Artillery', ForkThread(Phase3ArtilleryThread))
+        Log('ARTILLERY', 'Bombardment system active')
+    end
+    if not phase.DefenseNodeDestroyed then
+        AddThread('Phase3DefenseRepair', ForkThread(Phase3DefenseRepairThread))
+    end
+    if not phase.ReinforcementGatewayDestroyed then
+        AddThread('Phase3GatewayReinforcement', ForkThread(Phase3GatewayReinforcementThread))
+        AddThread('Phase3TransportDrops', ForkThread(Phase3TransportDropThread))
+    end
+    AddThread('Phase3AttackDirector', ForkThread(Phase3AttackDirectorThread))
 end
 
 function InitializeMissionState()
@@ -2594,6 +4045,8 @@ function InitializeMissionState()
     MissionState.Phase1Completed = false
     MissionState.Phase2 = NewPhase2State()
     MissionState.Phase2.Limits = GetPhase2Limits()
+    MissionState.Phase3 = NewPhase3State()
+    MissionState.Phase3.Limits = GetPhase3Limits()
 
     ScenarioInfo.OperationTwinSpear = MissionState
 
@@ -2728,6 +4181,9 @@ function InitializeEnemyArmies()
     if not InitializePhase2EnemyForces() then
         return false
     end
+    if not InitializePhase3EnemyForces() then
+        return false
+    end
 
     return true
 end
@@ -2849,6 +4305,20 @@ function StartMission()
     MissionState.MissionStarted = true
     Log('PHASE', 'Mission flow started')
 
+    if DEBUG and DEBUG_OPTIONS.StartPhase3Immediately then
+        MissionState.CommandPostDestroyed = true
+        MissionState.CounterattackStarted = true
+        MissionState.CounterattackResolved = true
+        MissionState.Phase1Completed = true
+        MissionState.Phase2.Started = true
+        MissionState.Phase2.WestCompleted = true
+        MissionState.Phase2.EastCompleted = true
+        ScenarioFramework.SetPlayableArea('AREA_PHASE_3', false)
+        MissionState.CurrentPhase = 3
+        StartPhase3()
+        return
+    end
+
     if DEBUG and DEBUG_OPTIONS.StartPhase2Immediately then
         MissionState.CommandPostDestroyed = true
         MissionState.CounterattackStarted = true
@@ -2952,6 +4422,59 @@ local function InitializeDebugControls()
             CompleteWestObjective()
             CompleteEastObjective()
             CompletePhase2()
+        end,
+
+        StartPhase3 = function()
+            if MissionState.CurrentPhase < 3 then
+                MissionState.Phase2.Started = true
+                MissionState.Phase2.WestCompleted = true
+                MissionState.Phase2.EastCompleted = true
+                MissionState.CurrentPhase = 3
+            end
+            ScenarioFramework.SetPlayableArea('AREA_PHASE_3', true)
+            StartPhase3()
+        end,
+
+        CompleteArtilleryObjective = function()
+            local target = MissionState.Targets.Phase3Artillery
+            if IsUnitAlive(target) then target:Kill() else CompleteArtilleryObjective() end
+        end,
+
+        CompleteDefenseObjective = function()
+            local target = MissionState.Targets.Phase3DefenseNode
+            if IsUnitAlive(target) then target:Kill() else CompleteDefenseObjective() end
+        end,
+
+        CompleteGatewayObjective = function()
+            local target = MissionState.Targets.Phase3Gateway
+            if IsUnitAlive(target) then target:Kill() else CompleteGatewayObjective() end
+        end,
+
+        TriggerStrategicResponse = function()
+            TriggerStrategicResponse()
+        end,
+
+        TriggerEmergencyResponse = function()
+            TriggerEmergencyResponse()
+        end,
+
+        SpawnTransportDrop = function()
+            AddThread('DebugTransportDrop', ForkThread(SpawnTransportDrop))
+        end,
+
+        SpawnPhase3Attack = function()
+            return SpawnPhase3Attack()
+        end,
+
+        CompletePhase3 = function()
+            CompleteArtilleryObjective()
+            CompleteDefenseObjective()
+            CompleteGatewayObjective()
+            CompletePhase3()
+        end,
+
+        UnlockFinaleArea = function()
+            UnlockFinaleArea()
         end,
     }
 
